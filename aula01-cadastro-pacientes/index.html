@@ -18,34 +18,43 @@
 
 			<!-- Formulário de cadastro -->
 			<form id="form-paciente" class="row g-3 mb-5">
-				<div class="col-md-4">
+				<div class="col-md-2">
 					<label for="nome" class="form-label">Nome</label>
 					<input type="text" class="form-control" id="nome" required />
 				</div>
 
-				<div class="col-md-4">
+				<div class="col-md-3">
 					<label for="email" class="form-label">E-mail</label>
 					<input type="email" class="form-control" id="email" required />
 				</div>
 
-				<div class="col-md-3">
+				<div class="col-md-2">
 					<label for="nascimento" class="form-label">Data de nascimento</label>
 					<input type="date" class="form-control" id="nascimento" required />
 				</div>
 
-				<div class="col-md-1 d-flex align-items-end">
+				<div class="col-md-2">
+					<label for="telefone" class="form-label">Telefone</label>
+					<input type="tel" class="form-control" id="telefone" required />
+				</div>
+				<div class="col-md-2 d-flex align-items-end">
 					<button type="submit" class="btn btn-primary w-100">+</button>
 				</div>
 			</form>
 
 			<!-- Tabela de pacientes -->
 			<h2 class="h4 mb-3">Pacientes cadastrados</h2>
+			<div id="contador-pacientes" class="mb-3">
+				Total de pacientes: 0
+			</div>
 			<table class="table table-striped">
 				<thead>
 					<tr>
 						<th>Nome</th>
 						<th>E-mail</th>
 						<th>Data de nascimento</th>
+						<th>Telefone</th>
+						<th>Idade</th>
 					</tr>
 				</thead>
 				<tbody id="tabela-pacientes">
