@@ -21,3 +21,29 @@ h1 {
     opacity: 1;
   }
 }
+
+.anima-aceno {
+  display: inline-block; 
+  transition: transform 0.2s;
+  /* Margem opcional para afastar o ícone do texto */
+  margin-right: 8px; 
+}
+
+button:hover .anima-aceno {
+  animation: balanco 0.6s ease-in-out infinite alternate;
+}
+
+.wrapper-input:hover .anima-aceno,
+.wrapper-input:focus-within .anima-aceno {
+  animation: crescer 0.6s ease-in-out infinite alternate;
+  color: #0d6efd !important; /* Cor azul do Bootstrap */
+}
+
+@keyframes balanco {
+  0% { transform: scale(1.1) rotate(-15deg); }
+  100% { transform: scale(1.1) rotate(15deg); }
+}
+@keyframes crescer{
+  0% { transform: scale(1) }
+  100% { transform: scale(1.2)}
+}

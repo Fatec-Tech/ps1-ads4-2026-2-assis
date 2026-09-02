@@ -19,6 +19,7 @@ const pacientes = localStorage.getItem('pacientes') ? JSON.parse(localStorage.ge
 const formulario = document.getElementById('form-paciente');
 const tabela = document.getElementById('tabela-pacientes');
 const buscarInput = document.getElementById('busca');
+const telInput = document.getElementById('telefone');
 const thOrdenar = document.getElementById('ordenar');
 let ordemCrescente = true;
 
@@ -90,7 +91,7 @@ function renderizarTabela() {
       <td>${paciente.nome}</td>
       <td>${paciente.email}</td>
       <td>${formatarData(paciente.nascimento)}</td>
-      <td>${paciente.telefone}</td>
+      <td>${formatarTelefone(paciente.telefone)}</td>
 	  <td>${paciente.idade}</td>
 	  <td><button class="btn btn-danger btn-sm" onclick="removerPaciente('${paciente.email}')"><i class="ri-delete-bin-line"></i></button></td>
     `;
@@ -109,7 +110,7 @@ function formatarData(dataISO) {
 buscarInput.addEventListener('input', () => {
 	const termoBusca = buscarInput.value.toLowerCase();
 
-	console.log('Termo de busca:', termoBusca); 
+	
 
 	pacientes.some(paciente => paciente.nome.toLowerCase().includes(termoBusca)) ? renderizarTabela() : tabela.innerHTML = '<tr><td  class="text-center align-middle" colspan="6">Nenhum paciente encontrado</td></tr>';
 
@@ -129,11 +130,17 @@ formulario.addEventListener('submit', (event) => {
 
 	console.log(checkLocal ? 'Salvar localmente' : 'Não salvar localmente');
 
+    if (!nome || !email || !nascimento || !telefone) {
+
+		exibirModalErro('Erro de Validação', 'Por favor, preencha todos os campos!');
+		return;
+	}
+
 	 if (pacientes.some(paciente => paciente.email === email)) {
-		alert('Este e-mail já está cadastrado!');
+		exibirModalErro('Erro de Validação', 'Este e-mail já está cadastrado!');
 		return; // Sai da função sem adicionar o paciente
 	}
-	adicionarPaciente(nome, email, nascimento, telefone, checkLocal);
+	adicionarPaciente(nome, email, nascimento, removerMascara(telefone), checkLocal);
 	renderizarTabela();
 
 	formulario.reset(); // limpa os campos do formulário
@@ -170,6 +177,37 @@ function ordenarArrayPorTexto(array, chave, crescente = true) {
     });
 }
 
+telInput.addEventListener('input', (event) => {
+    event.target.value = formatarTelefone(event.target.value);
+});
+
+function formatarTelefone(valor) {
+    if (!valor) return ""; 
+    
+    let v = String(valor).replace(/\D/g, ""); 
+    v = v.substring(0, 11); 
+    
+    let formatado = v;
+    
+    if (v.length > 2) {
+        if (v[2] === '9') {
+            formatado = `(${v.substring(0, 2)}) ${v.substring(2, 7)}`;
+            if (v.length >= 8) formatado += `-${v.substring(7, 11)}`;
+        } else {
+            formatado = `(${v.substring(0, 2)}) ${v.substring(2, 6)}`;
+            if (v.length >= 7) formatado += `-${v.substring(6, 10)}`;
+        }
+    } else if (v.length === 2) {
+        formatado = `(${v}`;
+    }
+    
+    return formatado; 
+}
+
+function removerMascara(valor) {
+    // Retorna apenas os números da string
+    return valor.replace(/\D/g, "");
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // Verifica se o array tem 1 ou mais itens
@@ -177,3 +215,18 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTabela();
     }
 });
+
+
+function exibirModalErro(titulo, mensagem) {
+
+  document.getElementById('modalDeErroTitulo').textContent = titulo;
+  document.getElementById('modalDeErroMensagem').textContent = mensagem;
+
+
+  const elementoModal = document.getElementById('modalDeErro');
+
+
+  const instanciaModal = bootstrap.Modal.getOrCreateInstance(elementoModal);
+x
+  instanciaModal.show();
+}
