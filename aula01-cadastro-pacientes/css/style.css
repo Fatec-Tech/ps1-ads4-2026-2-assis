@@ -12,6 +12,28 @@ h1 {
   animation: fadeIn 0.3s ease-in;
 }
 
+.tabela-pacientes thead th {
+  border-bottom-width: 0;
+  color: #fff;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.tabela-pacientes thead {
+  --bs-table-bg: var(--bs-primary);
+  --bs-table-color: #fff;
+}
+
+.tabela-pacientes tbody td {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+}
+
+#ordenar {
+  user-select: none;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

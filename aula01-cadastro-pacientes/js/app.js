@@ -88,12 +88,12 @@ function renderizarTabela() {
 		const linha = document.createElement('tr');
 
 		linha.innerHTML = `
-      <td>${paciente.nome}</td>
+      <td class="fw-semibold text-body"><i class="ri-user-smile-fill text-primary me-2" aria-hidden="true"></i>${paciente.nome}</td>
       <td>${paciente.email}</td>
-      <td>${formatarData(paciente.nascimento)}</td>
-      <td>${formatarTelefone(paciente.telefone)}</td>
-	  <td>${paciente.idade}</td>
-	  <td><button class="btn btn-danger btn-sm" onclick="removerPaciente('${paciente.email}')"><i class="ri-delete-bin-line"></i></button></td>
+      <td class="text-nowrap">${formatarData(paciente.nascimento)}</td>
+      <td class="text-nowrap">${formatarTelefone(paciente.telefone)}</td>
+	  <td class="text-center">${paciente.idade}</td>
+	  <td class="text-center"><button class="btn btn-outline-danger btn-sm" type="button" title="Remover paciente" aria-label="Remover paciente ${paciente.nome}" onclick="removerPaciente('${paciente.email}')"><i class="ri-delete-bin-line" aria-hidden="true"></i></button></td>
     `;
 
 		tabela.appendChild(linha);
@@ -112,7 +112,7 @@ buscarInput.addEventListener('input', () => {
 
 	
 
-	pacientes.some(paciente => paciente.nome.toLowerCase().includes(termoBusca)) ? renderizarTabela() : tabela.innerHTML = '<tr><td  class="text-center align-middle" colspan="6">Nenhum paciente encontrado</td></tr>';
+	pacientes.some(paciente => paciente.nome.toLowerCase().includes(termoBusca)) ? renderizarTabela() : tabela.innerHTML = '<tr><td class="py-4 text-center text-body-secondary" colspan="6"><i class="ri-search-line me-1" aria-hidden="true"></i>Nenhum paciente encontrado</td></tr>';
 
 });
 
@@ -227,6 +227,6 @@ function exibirModalErro(titulo, mensagem) {
 
 
   const instanciaModal = bootstrap.Modal.getOrCreateInstance(elementoModal);
-x
+
   instanciaModal.show();
 }
