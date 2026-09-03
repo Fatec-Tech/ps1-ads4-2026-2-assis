@@ -24,17 +24,20 @@ const thOrdenar = document.getElementById('ordenar');
 let ordemCrescente = true;
 
 function calcularIdade(dataNascimento) {
-   dataNascimento = new Date(dataNascimento);
-   const hoje = new Date();
-   let idade = hoje.getFullYear() - dataNascimento.getFullYear();
-   const mes = hoje.getMonth() - dataNascimento.getMonth();
+   
+    const [ano, mes, dia] = dataNascimento.split("-").map(Number);
+    const hoje = new Date();
 
+    let idade = hoje.getFullYear() - ano;
 
-   if (mes < 0 || (mes === 0 && hoje.getDate() < dataNascimento.getDate())) {
-	   idade--;
-   }
+    if (
+        hoje.getMonth() + 1 < mes ||
+        (hoje.getMonth() + 1 === mes && hoje.getDate() < dia)
+    ) {
+        idade--;
+    }
 
-   return Math.max(0, idade);
+    return idade;
 }
 
 function atualizarContador() {
