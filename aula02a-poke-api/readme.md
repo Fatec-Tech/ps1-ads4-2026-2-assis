@@ -6,7 +6,7 @@ Aplicação web desenvolvida para consultar e explorar informações de Pokémon
 
 O vídeo abaixo mostra o funcionamento da aplicação:
 
-<video src="./img/video.webm" controls width="100%">
+<video src="https://raw.githubusercontent.com/Fatec-Tech/ps1-ads4-2026-2-assis/main/aula02a-poke-api/img/video.webm" controls width="100%">
   Seu navegador não consegue reproduzir este vídeo. [Assista ao vídeo da demonstração](./img/video.webm).
 </video>
 
