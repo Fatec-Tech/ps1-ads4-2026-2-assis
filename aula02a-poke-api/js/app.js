@@ -412,15 +412,51 @@ function renderPokemonHud(pokemon) {
 	`;
 }
 
-// Abre o modal e prepara o espaço para os detalhes do Pokémon selecionado.
-async function openPokemonModal(id) {
-	pokemonModalBody.innerHTML = `
-		<div class="text-center py-4">
-			<div class="spinner-border text-danger" role="status">
-				<span class="visually-hidden">Carregando detalhes...</span>
-			</div>
+function renderPokemonModalSkeleton() {
+	return `
+		<div class="pokemon-hud-layout pokemon-modal-skeleton" aria-busy="true" aria-label="Carregando detalhes do Pokémon">
+			<aside class="pokemon-hud-column">
+				<div class="pokemon-hud-card">
+					<div class="modal-skeleton-line modal-skeleton-title"></div>
+					<div class="modal-skeleton-row">
+						<div class="modal-skeleton-block modal-skeleton-number"></div>
+						<div class="modal-skeleton-block modal-skeleton-name"></div>
+					</div>
+					<div class="modal-skeleton-block modal-skeleton-type"></div>
+				</div>
+				<div class="pokemon-hud-card modal-skeleton-stats">
+					<div class="modal-skeleton-line modal-skeleton-title"></div>
+					${Array.from({ length: 4 }, () => '<div class="modal-skeleton-block modal-skeleton-stat"></div>').join('')}
+				</div>
+			</aside>
+
+			<main class="pokemon-hud-hero">
+				<div class="modal-skeleton-hero"></div>
+				<div class="modal-skeleton-controls">
+					<div class="modal-skeleton-block modal-skeleton-sprite"></div>
+					<div class="modal-skeleton-block modal-skeleton-button"></div>
+					<div class="modal-skeleton-block modal-skeleton-sprite"></div>
+				</div>
+			</main>
+
+			<aside class="pokemon-hud-column">
+				<div class="pokemon-hud-card modal-skeleton-abilities">
+					<div class="modal-skeleton-line modal-skeleton-title"></div>
+					${Array.from({ length: 4 }, () => '<div class="modal-skeleton-block modal-skeleton-ability"></div>').join('')}
+				</div>
+				<div class="pokemon-hud-card">
+					<div class="modal-skeleton-line modal-skeleton-title"></div>
+					<div class="modal-skeleton-block modal-skeleton-measure"></div>
+					<div class="modal-skeleton-block modal-skeleton-measure"></div>
+				</div>
+			</aside>
 		</div>
 	`;
+}
+
+// Abre o modal e prepara o espaço para os detalhes do Pokémon selecionado.
+async function openPokemonModal(id) {
+	pokemonModalBody.innerHTML = renderPokemonModalSkeleton();
 
 	bootstrap.Modal.getOrCreateInstance(pokemonModalElement).show();
 

@@ -52,6 +52,54 @@
 				border-radius: 999px;
 				background-color: rgba(173, 181, 189, 0.45);
 			}
+			.pokemon-modal-skeleton .pokemon-hud-card {
+				border-color: rgba(255, 255, 255, 0.16);
+				background: rgba(255, 255, 255, 0.08);
+			}
+			.modal-skeleton-block,
+			.modal-skeleton-line {
+				background: linear-gradient(90deg, rgba(255, 255, 255, 0.12) 25%, rgba(255, 255, 255, 0.28) 50%, rgba(255, 255, 255, 0.12) 75%);
+				background-size: 200% 100%;
+				animation: skeletonLoading 1.4s ease-in-out infinite;
+			}
+			.modal-skeleton-line {
+				height: 12px;
+				margin-bottom: 1rem;
+				border-radius: 999px;
+			}
+			.modal-skeleton-title { width: 42%; }
+			.modal-skeleton-row {
+				display: flex;
+				justify-content: space-between;
+				gap: 1rem;
+			}
+			.modal-skeleton-block { border-radius: 0.45rem; }
+			.modal-skeleton-number { width: 32%; height: 34px; }
+			.modal-skeleton-name { width: 42%; height: 34px; }
+			.modal-skeleton-type { width: 58%; height: 24px; margin-top: 1rem; }
+			.modal-skeleton-stat { width: 100%; height: 18px; margin-bottom: 1.25rem; }
+			.modal-skeleton-ability { width: 100%; height: 42px; margin-bottom: 0.65rem; }
+			.modal-skeleton-measure { width: 100%; height: 20px; margin-bottom: 1rem; }
+			.modal-skeleton-hero {
+				width: min(40vw, 520px);
+				height: min(40vw, 520px);
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				border-radius: 50%;
+				background: linear-gradient(90deg, rgba(255, 255, 255, 0.08) 25%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.08) 75%);
+				background-size: 200% 100%;
+				animation: skeletonLoading 1.4s ease-in-out infinite;
+			}
+			.modal-skeleton-controls {
+				position: absolute;
+				bottom: 1.5rem;
+				left: 50%;
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+				transform: translateX(-50%);
+			}
+			.modal-skeleton-sprite { width: 78px; height: 78px; border-radius: 50%; }
+			.modal-skeleton-button { width: 190px; height: 58px; border-radius: 999px; }
 			.pokemon-modal-image {
 				width: min(100%, 240px);
 				max-height: 220px;
