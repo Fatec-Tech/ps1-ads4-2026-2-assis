@@ -1,12 +1,32 @@
 const API_URL = 'https://pokeapi.co/api/v2/pokemon';
+const GRAPHQL_URL = 'https://graphql.pokeapi.co/v1beta2';
 const pokemonCache = new Map();
+const suggestionCache = new Map();
 
 const pokemonGrid = document.getElementById('pokemonGrid');
 const pokemonSentinel = document.getElementById('pokemonSentinel');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+const typeFilter = document.getElementById('typeFilter');
+const generationFilter = document.getElementById('generationFilter');
+const categoryFilter = document.getElementById('categoryFilter');
+const sortFilter = document.getElementById('sortFilter');
+const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+const randomPokemonBtn = document.getElementById('randomPokemonBtn');
+const pokemonSuggestions = document.getElementById('pokemonSuggestions');
 const pokemonModalElement = document.getElementById('pokemonModal');
 const pokemonModalBody = document.getElementById('pokemonModalBody');
+
+let suggestionTimer;
+let suggestionController;
+let activeSuggestionIndex = -1;
+let latestSuggestionQuery = '';
+let isFilterMode = false;
+let filterResults = [];
+let filterOffset = 0;
+let filterRequestId = 0;
+let filterCatalog;
 
 const statLabels = {
 	hp: 'HP',
@@ -70,6 +90,35 @@ async function fetchPokemonData(urlOrName) {
 	return pokemon;
 }
 
+async function fetchPokemonSuggestions(searchTerm) {
+	const normalizedTerm = searchTerm.trim().toLowerCase();
+	if (suggestionCache.has(normalizedTerm)) return suggestionCache.get(normalizedTerm);
+
+	const response = await fetch(GRAPHQL_URL, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+		body: JSON.stringify({
+			query: `query SearchPokemon($name: String!) {
+				pokemon(
+					where: { name: { _ilike: $name } }
+					limit: 8
+					order_by: { id: asc }
+				) { id name types: pokemontypes { type { name } } }
+			}`,
+			variables: { name: `%${normalizedTerm}%` },
+		}),
+		signal: suggestionController?.signal,
+	});
+
+	if (!response.ok) throw new Error('Não foi possível consultar as sugestões');
+	const payload = await response.json();
+	if (payload.errors?.length) throw new Error(payload.errors[0].message);
+
+	const suggestions = payload.data?.pokemon || [];
+	suggestionCache.set(normalizedTerm, suggestions);
+	return suggestions;
+}
+
 
 const PAGE_SIZE = 20;
 let currentOffset = 0;
@@ -78,6 +127,10 @@ let hasMorePokemon = true;
 let isSearchMode = false;
 
 async function loadPokemonPage(reset = false) {
+	if (isFilterMode) {
+		await loadFilteredPokemonPage(reset);
+		return;
+	}
 	if (isLoadingPage || (!hasMorePokemon && !reset)) return;
 
 	if (reset) {
@@ -109,6 +162,33 @@ async function loadPokemonPage(reset = false) {
 		hasMorePokemon = Boolean(data.next);
 	} catch (error) {
 		showError('Erro ao carregar a lista de Pokémon.');
+		console.error(error);
+	} finally {
+		isLoadingPage = false;
+		removeSkeletonCards();
+	}
+}
+
+async function loadFilteredPokemonPage(reset = false) {
+	if (isLoadingPage || (!filterResults.length && !reset)) return;
+
+	if (reset) {
+		filterOffset = 0;
+		pokemonGrid.innerHTML = '';
+	}
+
+	const page = filterResults.slice(filterOffset, filterOffset + PAGE_SIZE);
+	if (!page.length) return;
+
+	isLoadingPage = true;
+	renderSkeletonCards(page.length);
+	try {
+		const pokemonList = await Promise.all(page.map(({ id }) => fetchPokemonData(String(id))));
+		const skeletons = [...pokemonGrid.querySelectorAll('.skeleton-item')];
+		pokemonList.forEach((pokemon, index) => renderPokemonCard(pokemon, skeletons[index]));
+		filterOffset += page.length;
+	} catch (error) {
+		showError('Erro ao carregar os Pokémon filtrados.');
 		console.error(error);
 	} finally {
 		isLoadingPage = false;
@@ -485,11 +565,13 @@ async function handleSearch() {
 	const query = searchInput.value.trim();
 	if (!query) {
 		isSearchMode = false;
+		isFilterMode = false;
 		loadInitialPokemon();
 		return;
 	}
 
 	isSearchMode = true;
+	isFilterMode = false;
 	pokemonGrid.innerHTML = '';
 	renderSkeletonCards(1);
 
@@ -517,10 +599,256 @@ function renderEmptyState(title, message) {
 	`;
 }
 
+function setSuggestionsVisible(isVisible) {
+	pokemonSuggestions.classList.toggle('d-none', !isVisible);
+	searchInput.setAttribute('aria-expanded', String(isVisible));
+}
+
+function renderPokemonSuggestions(suggestions, query) {
+	activeSuggestionIndex = -1;
+	if (!suggestions.length) {
+		pokemonSuggestions.innerHTML = `<div class="pokemon-suggestions-message">Nenhum Pokémon encontrado para “${query}”.</div>`;
+		setSuggestionsVisible(true);
+		return;
+	}
+
+	pokemonSuggestions.innerHTML = suggestions.map((pokemon, index) => {
+		const typeName = pokemon.types?.[0]?.type?.name || 'normal';
+		const typeColor = (pokemonTypeThemes[typeName] || pokemonTypeThemes.normal)[0];
+		return `
+		<button type="button" class="pokemon-suggestion" role="option" data-suggestion-index="${index}" data-pokemon-name="${pokemon.name}">
+			<img class="pokemon-suggestion-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png" alt="" aria-hidden="true" />
+			<span class="pokemon-suggestion-number">#${String(pokemon.id).padStart(3, '0')}</span>
+			<span class="pokemon-suggestion-name">${pokemon.name}</span>
+			<span class="pokemon-suggestion-type" style="background-color: ${typeColor};">${typeName}</span>
+		</button>
+	`;
+	}).join('');
+	setSuggestionsVisible(true);
+}
+
+function hideSuggestions() {
+	setSuggestionsVisible(false);
+	activeSuggestionIndex = -1;
+}
+
+async function updateSuggestions() {
+	const query = searchInput.value.trim();
+	latestSuggestionQuery = query;
+	clearTimeout(suggestionTimer);
+	if (suggestionController) suggestionController.abort();
+
+	if (query.length < 2) {
+		hideSuggestions();
+		if (!query && isSearchMode) {
+			isSearchMode = false;
+			loadInitialPokemon();
+		}
+		return;
+	}
+
+	suggestionTimer = setTimeout(async () => {
+		suggestionController = new AbortController();
+		pokemonSuggestions.innerHTML = '<div class="pokemon-suggestions-message">Buscando sugestões...</div>';
+		setSuggestionsVisible(true);
+		try {
+			const suggestions = await fetchPokemonSuggestions(query);
+			if (latestSuggestionQuery === query) renderPokemonSuggestions(suggestions, query);
+		} catch (error) {
+			if (error.name === 'AbortError') return;
+			pokemonSuggestions.innerHTML = '<div class="pokemon-suggestions-message">Não foi possível carregar as sugestões.</div>';
+			setSuggestionsVisible(true);
+		}
+	}, 250);
+}
+
+function moveSuggestionSelection(direction) {
+	const options = [...pokemonSuggestions.querySelectorAll('.pokemon-suggestion')];
+	if (!options.length) return false;
+	activeSuggestionIndex = (activeSuggestionIndex + direction + options.length) % options.length;
+	options.forEach((option, index) => {
+		option.classList.toggle('is-active', index === activeSuggestionIndex);
+		option.setAttribute('aria-selected', String(index === activeSuggestionIndex));
+	});
+	options[activeSuggestionIndex].scrollIntoView({ block: 'nearest' });
+	return true;
+}
+
+function selectSuggestion(pokemonName) {
+	searchInput.value = pokemonName;
+	hideSuggestions();
+	handleSearch();
+}
+
+async function fetchFilterCatalog() {
+	if (filterCatalog) return filterCatalog;
+
+	const response = await fetch(GRAPHQL_URL, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+		body: JSON.stringify({
+			query: `query PokemonFilterCatalog {
+				pokemon(where: { is_default: { _eq: true } }, limit: 2000, order_by: { id: asc }) {
+					id
+					name
+					types: pokemontypes { type { name } }
+					species: pokemonspecy { is_legendary is_mythical generation { name } }
+				}
+			}`,
+		}),
+	});
+
+	if (!response.ok) throw new Error('Não foi possível carregar os filtros');
+	const payload = await response.json();
+	if (payload.errors?.length) throw new Error(payload.errors[0].message);
+	filterCatalog = payload.data?.pokemon || [];
+	return filterCatalog;
+}
+
+function getSelectedFilters() {
+	return {
+		type: typeFilter.value,
+		generation: generationFilter.value,
+		category: categoryFilter.value,
+		sort: sortFilter.value,
+	};
+}
+
+function syncTypeChips() {
+	const selectedType = typeFilter.value;
+	document.querySelectorAll('[data-type-chip]').forEach((chip) => {
+		chip.classList.toggle('is-active', chip.dataset.typeChip === selectedType);
+	});
+}
+
+function filterCatalogResults(catalog, filters) {
+	const results = catalog.filter((pokemon) => {
+		const species = pokemon.species || {};
+		const hasType = !filters.type || pokemon.types?.some(({ type }) => type.name === filters.type);
+		const hasGeneration = !filters.generation || species.generation?.name === filters.generation;
+		const hasCategory = !filters.category ||
+			(filters.category === 'legendary' && species.is_legendary) ||
+			(filters.category === 'mythical' && species.is_mythical) ||
+			(filters.category === 'regular' && !species.is_legendary && !species.is_mythical);
+		return hasType && hasGeneration && hasCategory;
+	});
+
+	return results.sort((first, second) => {
+		if (filters.sort === 'name-asc') return first.name.localeCompare(second.name);
+		if (filters.sort === 'name-desc') return second.name.localeCompare(first.name);
+		return first.id - second.id;
+	});
+}
+
+async function applyFilters() {
+	const requestId = ++filterRequestId;
+	isFilterMode = true;
+	isSearchMode = false;
+	hideSuggestions();
+	pokemonGrid.innerHTML = '';
+	renderSkeletonCards(PAGE_SIZE);
+
+	try {
+		const catalog = await fetchFilterCatalog();
+		if (requestId !== filterRequestId) return;
+		filterResults = filterCatalogResults(catalog, getSelectedFilters());
+		removeSkeletonCards();
+		if (!filterResults.length) {
+			showError('Nenhum Pokémon encontrado com esses filtros.');
+			return;
+		}
+		await loadFilteredPokemonPage(true);
+	} catch (error) {
+		removeSkeletonCards();
+		showError('Não foi possível aplicar os filtros agora.');
+		console.error(error);
+	}
+}
+
+function clearFilters() {
+	searchInput.value = '';
+	typeFilter.value = '';
+	generationFilter.value = '';
+	categoryFilter.value = '';
+	sortFilter.value = 'id-asc';
+	syncTypeChips();
+	filterRequestId += 1;
+	isSearchMode = false;
+	isFilterMode = false;
+	filterResults = [];
+	filterOffset = 0;
+	loadInitialPokemon();
+}
+
 // Eventos
-searchBtn.addEventListener('click', handleSearch);
-searchInput.addEventListener('keypress', (e) => {
-	if (e.key === 'Enter') handleSearch();
+searchBtn.addEventListener('click', () => {
+	hideSuggestions();
+	handleSearch();
+});
+clearSearchBtn.addEventListener('click', () => {
+	searchInput.value = '';
+	hideSuggestions();
+	if (isSearchMode) {
+		isSearchMode = false;
+		loadInitialPokemon();
+	}
+	searchInput.focus();
+});
+typeFilter.addEventListener('change', () => {
+	syncTypeChips();
+	applyFilters();
+});
+generationFilter.addEventListener('change', applyFilters);
+categoryFilter.addEventListener('change', applyFilters);
+sortFilter.addEventListener('change', applyFilters);
+clearFiltersBtn.addEventListener('click', clearFilters);
+document.querySelectorAll('[data-type-chip]').forEach((chip) => {
+	chip.addEventListener('click', () => {
+		typeFilter.value = typeFilter.value === chip.dataset.typeChip ? '' : chip.dataset.typeChip;
+		syncTypeChips();
+		applyFilters();
+	});
+});
+randomPokemonBtn.addEventListener('click', async () => {
+	const maxPokemonId = filterCatalog?.length ? Math.max(...filterCatalog.map(({ id }) => id)) : 1025;
+	const randomId = Math.floor(Math.random() * maxPokemonId) + 1;
+	randomPokemonBtn.disabled = true;
+	randomPokemonBtn.textContent = '⟳ Explorando...';
+	try {
+		await openPokemonModal(randomId);
+	} finally {
+		randomPokemonBtn.disabled = false;
+		randomPokemonBtn.textContent = '⚡ Pokémon aleatório';
+	}
+});
+searchInput.addEventListener('input', updateSuggestions);
+searchInput.addEventListener('keydown', (event) => {
+	if (event.key === 'ArrowDown' && moveSuggestionSelection(1)) {
+		event.preventDefault();
+		return;
+	}
+	if (event.key === 'ArrowUp' && moveSuggestionSelection(-1)) {
+		event.preventDefault();
+		return;
+	}
+	if (event.key === 'Escape') {
+		hideSuggestions();
+		return;
+	}
+	if (event.key === 'Enter') {
+		event.preventDefault();
+		const activeOption = pokemonSuggestions.querySelector('.pokemon-suggestion.is-active');
+		selectSuggestion(activeOption?.dataset.pokemonName || searchInput.value.trim());
+	}
+});
+
+pokemonSuggestions.addEventListener('click', (event) => {
+	const suggestion = event.target.closest('[data-pokemon-name]');
+	if (suggestion) selectSuggestion(suggestion.dataset.pokemonName);
+});
+
+document.addEventListener('click', (event) => {
+	if (!event.target.closest('.search-autocomplete')) hideSuggestions();
 });
 
 const pokemonObserver = new IntersectionObserver(
