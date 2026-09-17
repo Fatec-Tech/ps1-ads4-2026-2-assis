@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Nenhum Pokémon encontrado</title>
+  <desc id="desc">Poké Bola minimalista em tons de cinza para representar um estado vazio.</desc>
+
+  <defs>
+    <linearGradient id="topGray" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9d0d8"/>
+      <stop offset="1" stop-color="#9da8b4"/>
+    </linearGradient>
+    <linearGradient id="bottomGray" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f8fa"/>
+      <stop offset="1" stop-color="#dfe4e9"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#586574" flood-opacity=".18"/>
+    </filter>
+    <clipPath id="ballClip">
+      <circle cx="256" cy="256" r="184"/>
+    </clipPath>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <!-- Parte inferior -->
+    <circle cx="256" cy="256" r="184" fill="url(#bottomGray)"/>
+
+    <!-- Parte superior -->
+    <path d="M72 256a184 184 0 0 1 368 0H72Z" fill="url(#topGray)" clip-path="url(#ballClip)"/>
+
+    <!-- Faixa central -->
+    <rect x="72" y="242" width="368" height="28" fill="#687482"/>
+
+    <!-- Contorno -->
+    <circle cx="256" cy="256" r="184" fill="none" stroke="#687482" stroke-width="14"/>
+
+    <!-- Botão central -->
+    <circle cx="256" cy="256" r="59" fill="#687482"/>
+    <circle cx="256" cy="256" r="42" fill="#f7f8fa" stroke="#aeb8c2" stroke-width="6"/>
+  </g>
+</svg>

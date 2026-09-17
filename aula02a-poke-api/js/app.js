@@ -472,7 +472,10 @@ async function openPokemonModal(id) {
 			${renderPokemonHud(pokemon)}
 		`;
 	} catch (error) {
-		pokemonModalBody.innerHTML = '<div class="alert alert-warning mb-0" role="alert">Não foi possível carregar os detalhes deste Pokémon.</div>';
+		pokemonModalBody.innerHTML = renderEmptyState(
+			'Ops! Dados indisponíveis',
+			'Não foi possível carregar os detalhes deste Pokémon. Tente novamente em alguns instantes.'
+		);
 		console.error(error);
 	}
 }
@@ -501,13 +504,17 @@ async function handleSearch() {
 }
 
 function showError(message) {
-	pokemonGrid.innerHTML = `
-        <div class="col-12">
-          <div class="alert alert-warning text-center" role="alert">
-            ${message}
-          </div>
-        </div>
-      `;
+	pokemonGrid.innerHTML = renderEmptyState('Pokémon não encontrado', message);
+}
+
+function renderEmptyState(title, message) {
+	return `
+		<div class="col-12 pokemon-empty-state" role="alert">
+			<img src="img/pokemon-empty-pokeball.svg" alt="Pokébola vazia" class="pokemon-empty-state-image" />
+			<h2 class="pokemon-font text-uppercase mb-2">${title}</h2>
+			<p class="mb-0">${message}</p>
+		</div>
+	`;
 }
 
 // Eventos
