@@ -3,6 +3,7 @@ const pokemonCache = new Map();
 
 const pokemonGrid = document.getElementById('pokemonGrid');
 const loading = document.getElementById('loading');
+const pokemonSentinel = document.getElementById('pokemonSentinel');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const pokemonModalElement = document.getElementById('pokemonModal');
@@ -50,13 +51,29 @@ async function fetchPokemonData(urlOrName) {
 	return pokemon;
 }
 
-// Função para carregar a lista inicial (ex: primeiros 20)
-async function loadInitialPokemon(limit = 20) {
+
+const PAGE_SIZE = 20;
+let currentOffset = 0;
+let isLoadingPage = false;
+let hasMorePokemon = true;
+let isSearchMode = false;
+
+async function loadPokemonPage(reset = false) {
+	if (isLoadingPage || (!hasMorePokemon && !reset)) return;
+
+	if (reset) {
+		currentOffset = 0;
+		hasMorePokemon = true;
+		pokemonGrid.innerHTML = '';
+	}
+
+	isLoadingPage = true;
 	showLoading(true);
-	pokemonGrid.innerHTML = '';
 
 	try {
-		const response = await fetch(`${API_URL}?limit=${limit}`);
+		const response = await fetch(`${API_URL}?limit=${PAGE_SIZE}&offset=${currentOffset}`);
+		if (!response.ok) throw new Error('Não foi possível carregar a página de Pokémon');
+
 		const data = await response.json();
 
 		// Faz requisição paralela dos detalhes de cada um dos itens listados
@@ -65,14 +82,20 @@ async function loadInitialPokemon(limit = 20) {
 		);
 		const pokemonList = await Promise.all(pokemonPromises);
 
-		// Renderiza cada card
 		pokemonList.forEach(renderPokemonCard);
+		currentOffset += data.results.length;
+		hasMorePokemon = Boolean(data.next);
 	} catch (error) {
 		showError('Erro ao carregar a lista de Pokémon.');
 		console.error(error);
 	} finally {
+		isLoadingPage = false;
 		showLoading(false);
 	}
+}
+
+function loadInitialPokemon() {
+	loadPokemonPage(true);
 }
 
 // Função para criar a estrutura visual do Card no Bootstrap
@@ -263,10 +286,12 @@ async function openPokemonModal(id) {
 async function handleSearch() {
 	const query = searchInput.value.trim();
 	if (!query) {
+		isSearchMode = false;
 		loadInitialPokemon();
 		return;
 	}
 
+	isSearchMode = true;
 	showLoading(true);
 	pokemonGrid.innerHTML = '';
 
@@ -304,6 +329,17 @@ searchBtn.addEventListener('click', handleSearch);
 searchInput.addEventListener('keypress', (e) => {
 	if (e.key === 'Enter') handleSearch();
 });
+
+const pokemonObserver = new IntersectionObserver(
+	(entries) => {
+		if (entries[0].isIntersecting && !isSearchMode) {
+			loadPokemonPage();
+		}
+	},
+	{ rootMargin: '300px' }
+);
+
+pokemonObserver.observe(pokemonSentinel);
 
 pokemonGrid.addEventListener('click', (event) => {
 	const card = event.target.closest('[data-pokemon-id]');

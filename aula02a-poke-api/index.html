@@ -90,18 +90,20 @@
 				</div>
 			</div>
 
-			<!-- Spinner de carregamento da lista -->
-			<div id="loading" class="text-center my-5 d-none">
-				<div class="spinner-border text-danger" role="status">
-					<span class="visually-hidden">Carregando...</span>
-				</div>
-			</div>
-
 			<!-- Grid onde as cartas dos Pokémon serão inseridas -->
 			<div
 				class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4"
 				id="pokemonGrid"
 			></div>
+
+			<div id="pokemonSentinel" class="py-2" aria-hidden="true"></div>
+
+			<!-- Spinner exibido quando a próxima página está carregando -->
+			<div id="loading" class="text-center my-4 d-none">
+				<div class="spinner-border text-danger" role="status">
+					<span class="visually-hidden">Carregando mais Pokémon...</span>
+				</div>
+			</div>
 		</div>
 
 		<!-- Modal de detalhes do Pokémon -->
