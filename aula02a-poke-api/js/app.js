@@ -236,17 +236,15 @@ function renderPokemonAbilities(abilities) {
 	}
 
 	return `
-		<div class="row row-cols-1 row-cols-sm-2 g-2">
+		<div class="abilities-list">
 			${abilities
 				.map(
 					({ ability, is_hidden }, index) => `
-						<div class="col">
-							<div class="ability-item">
-								<span class="ability-number">${index + 1}</span>
-								<div>
-									<div class="ability-name text-capitalize">${ability.name}</div>
-									${is_hidden ? '<small class="ability-hidden-label text-secondary">Habilidade oculta</small>' : ''}
-								</div>
+						<div class="ability-item">
+							<span class="ability-number">${index + 1}</span>
+							<div>
+								<div class="ability-name text-capitalize">${ability.name}</div>
+								${is_hidden ? '<small class="ability-hidden-label text-secondary">Habilidade oculta</small>' : ''}
 							</div>
 						</div>
 					`
@@ -312,31 +310,103 @@ function renderPokemonOverview(pokemon) {
 		.join('');
 
 	return `
-		<div class="row align-items-stretch g-0 mb-4 pokemon-overview">
-			<div class="col-12 col-md-5 pokemon-overview-media text-center p-3 d-flex align-items-center justify-content-center">
-				<img src="${imageUrl}" class="img-fluid pokemon-modal-image" alt="${pokemon.name}" />
-				${renderPokemonCryButton(pokemon.cries)}
-			</div>
-			<div class="col-12 col-md-7 p-4 d-flex flex-column justify-content-center">
-				<p class="text-secondary mb-1">#${String(pokemon.id).padStart(3, '0')}</p>
-				<h4 class="pokemon-font text-capitalize fw-bold mb-2">${pokemon.name}</h4>
-				<div class="mb-3">${types}</div>
-				<div class="row text-center g-2">
-					<div class="col-6">
-						<div class="bg-light rounded p-2">
-							<small class="text-secondary d-block">Altura</small>
-							<strong>${(pokemon.height / 10).toFixed(1)} m</strong>
-						</div>
+		<div class="pokemon-overview mb-4">
+			<div class="pokemon-overview-stage">
+				<div class="pokemon-overview-side">
+					<small class="text-secondary d-block">Pokédex</small>
+					<strong>#${String(pokemon.id).padStart(3, '0')}</strong>
+					<div class="mt-3">
+						<small class="text-secondary d-block mb-2">Tipo</small>
+						<div>${types}</div>
 					</div>
-					<div class="col-6">
-						<div class="bg-light rounded p-2">
-							<small class="text-secondary d-block">Peso</small>
-							<strong>${(pokemon.weight / 10).toFixed(1)} kg</strong>
-						</div>
+				</div>
+
+				<div class="pokemon-overview-media text-center p-3 d-flex align-items-center justify-content-center">
+					<img src="${imageUrl}" class="img-fluid pokemon-modal-image" alt="${pokemon.name}" />
+					${renderPokemonCryButton(pokemon.cries)}
+				</div>
+
+				<div class="pokemon-overview-side">
+					<div class="mb-3">
+						<small class="text-secondary d-block">Altura</small>
+						<strong>${(pokemon.height / 10).toFixed(1)} m</strong>
+					</div>
+					<div>
+						<small class="text-secondary d-block">Peso</small>
+						<strong>${(pokemon.weight / 10).toFixed(1)} kg</strong>
 					</div>
 				</div>
 			</div>
+
+			<div class="pokemon-overview-name">
+				<h4 class="pokemon-font text-capitalize fw-bold mb-0">${pokemon.name}</h4>
+			</div>
 		</div>
+	`;
+}
+
+function renderPokemonHud(pokemon) {
+	const imageUrl =
+		pokemon.sprites.other?.home?.front_default ||
+		pokemon.sprites.other?.['official-artwork']?.front_default ||
+		pokemon.sprites.front_default;
+	const types = pokemon.types
+		.map(({ type }) => {
+			const [color] = pokemonTypeThemes[type.name] || pokemonTypeThemes.normal;
+			return `<span class="badge text-capitalize me-1" style="background-color: ${color};">${type.name}</span>`;
+		})
+		.join('');
+
+	return `
+		<div class="pokemon-hud-layout">
+			<aside class="pokemon-hud-column">
+				<div class="pokemon-hud-card">
+					<h6>Identificação</h6>
+					<div class="d-flex justify-content-between align-items-end">
+						<div>
+							<small class="text-secondary d-block">Pokédex</small>
+							<strong class="fs-4">#${String(pokemon.id).padStart(3, '0')}</strong>
+						</div>
+						<div class="text-end">
+							<small class="text-secondary d-block">Nome</small>
+							<strong class="pokemon-font text-capitalize">${pokemon.name}</strong>
+						</div>
+					</div>
+					<div class="mt-3"><small class="text-secondary d-block mb-2">Tipo</small>${types}</div>
+				</div>
+
+				<div class="pokemon-hud-card">
+					<h6>Status base</h6>
+					${renderPokemonStats(pokemon.stats)}
+				</div>
+			</aside>
+
+			<main class="pokemon-hud-hero">
+				<img src="${imageUrl}" class="pokemon-hud-hero-image" alt="${pokemon.name}" />
+				${renderPokemonCryButton(pokemon.cries)}
+			</main>
+
+			<aside class="pokemon-hud-column">
+				<div class="pokemon-hud-card">
+					<h6>Habilidades</h6>
+					${renderPokemonAbilities(pokemon.abilities)}
+				</div>
+				<div class="pokemon-hud-card">
+					<h6>Medidas</h6>
+					<div class="d-flex justify-content-between border-bottom border-light border-opacity-25 pb-2 mb-2">
+						<span class="text-secondary">Altura</span><strong>${(pokemon.height / 10).toFixed(1)} m</strong>
+					</div>
+					<div class="d-flex justify-content-between">
+						<span class="text-secondary">Peso</span><strong>${(pokemon.weight / 10).toFixed(1)} kg</strong>
+					</div>
+				</div>
+			</aside>
+		</div>
+
+		<section class="pokemon-hud-card pokemon-hud-sprites" aria-labelledby="pokemonSpritesTitle">
+			<h6 id="pokemonSpritesTitle">Galeria de sprites</h6>
+			${renderPokemonSprites(pokemon.sprites)}
+		</section>
 	`;
 }
 
@@ -360,21 +430,7 @@ async function openPokemonModal(id) {
 		pokemonModalElement.style.setProperty('--pokemon-color', pokemonColor);
 		pokemonModalElement.style.setProperty('--pokemon-color-dark', pokemonColorDark);
 		pokemonModalBody.innerHTML = `
-			${renderPokemonOverview(pokemon)}
-			<section class="pokemon-detail-section" aria-labelledby="pokemonStatsTitle">
-				<h6 id="pokemonStatsTitle" class="border-bottom pb-2 mb-3">Status base</h6>
-				${renderPokemonStats(pokemon.stats)}
-			</section>
-
-			<section class="pokemon-detail-section mt-4" aria-labelledby="pokemonAbilitiesTitle">
-				<h6 id="pokemonAbilitiesTitle" class="border-bottom pb-2 mb-3">Habilidades</h6>
-				${renderPokemonAbilities(pokemon.abilities)}
-			</section>
-
-			<section class="pokemon-detail-section mt-4" aria-labelledby="pokemonSpritesTitle">
-				<h6 id="pokemonSpritesTitle" class="border-bottom pb-2 mb-3">Galeria de sprites</h6>
-				${renderPokemonSprites(pokemon.sprites)}
-			</section>
+			${renderPokemonHud(pokemon)}
 		`;
 	} catch (error) {
 		pokemonModalBody.innerHTML = '<div class="alert alert-warning mb-0" role="alert">Não foi possível carregar os detalhes deste Pokémon.</div>';
