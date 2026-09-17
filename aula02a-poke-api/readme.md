@@ -1,135 +1,87 @@
-# Prática Guiada: Pokédex Assíncrona com Fetch API e Bootstrap
+# Pokédex Interativa
 
-Este repositório contém uma aplicação web interativa desenvolvida com **HTML5**, **Bootstrap 5** e **JavaScript (ES6+)**. O objetivo principal desta aula/laboratório é praticar a consumo de APIs RESTful usando a `Fetch API`, manipulação assíncrona com `async/await` e manipulação dinâmica do DOM.
+Aplicação web desenvolvida para consultar e explorar informações de Pokémon consumidas diretamente da [PokéAPI](https://pokeapi.co/). O projeto apresenta uma interface responsiva, busca por nome ou número, carregamento progressivo da lista e uma área de detalhes com informações completas do Pokémon selecionado.
 
----
+## Demonstração
 
-## 🎯 Objetivos do Aprendizado
+O vídeo abaixo mostra o funcionamento da aplicação:
 
-- Compreender o funcionamento de requisições HTTP assíncronas utilizando a **Fetch API**.
-- Trabalhar com **Promises**, `async/await` e o método `Promise.all` para requisições paralelas.
-- Tratar cenários de sucesso, erro e carregamento (*loading state*).
-- Manipular elementos do DOM dinamicamente com Template Literals.
-- Construir uma interface responsiva e moderna utilizando **Bootstrap 5**.
+<video src="./img/video.webm" controls width="100%">
+  Seu navegador não consegue reproduzir este vídeo. [Assista ao vídeo da demonstração](./img/video.webm).
+</video>
 
----
+## Funcionalidades
 
-## 🛠️ Tecnologias e Recursos Utilizados
+- Exibição dos Pokémon em cards responsivos.
+- Carregamento progressivo dos resultados conforme o usuário navega pela página.
+- Busca por nome ou número do Pokémon.
+- Cards com imagem oficial, número da Pokédex, tipos, altura e peso.
+- Modal de detalhes em tela cheia ao selecionar um card.
+- Exibição dos status base de HP, Ataque, Defesa e Velocidade.
+- Listagem das habilidades, incluindo a indicação de habilidade oculta.
+- Reprodução do som oficial do Pokémon.
+- Visualização de sprites normais e shiny, com versões da frente e das costas.
+- Estados visuais de carregamento com skeletons.
+- Mensagens amigáveis para Pokémon não encontrado ou falha na requisição.
+- Interação acessível por teclado nos cards.
 
-### 1. **HTML5 e CSS3**
-- Estrutura semântica (`<header>`, `<main>`, `<script>`).
-- Efeitos visuais simples via CSS (transição suave de *hover* e elevação nos cards).
+## Tecnologias utilizadas
 
-### 2. **Bootstrap 5 (via CDN)**
-- **Grid System Responsivo**: Uso de `row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4` para adaptar a quantidade de colunas de acordo com a tela.
-- **Componentes**: `card`, `badge`, `input-group`, `spinner-border` e `alert`.
-- **Utilitários de Flexbox e Espaçamento**: `d-flex`, `justify-content-between`, `py-5`, `mb-4`, etc.
+- HTML5
+- CSS3
+- JavaScript (ES6+)
+- Bootstrap 5.3
+- Fetch API
+- PokéAPI
+- Intersection Observer API
 
-### 3. **JavaScript (ES6+) & Web APIs**
-- **Fetch API**: Requisições HTTP nativas do navegador para obter dados no formato JSON da [PokéAPI](https://pokeapi.co/).
-- **`async / await`**: Sintaxe limpa e legível para tratamento de Promises.
-- **`Promise.all()`**: Utilizado para buscar os detalhes individuais de múltiplos Pokémon em paralelo, otimizando o tempo de carregamento da página.
-- **Manipulação do DOM**: Uso de `insertAdjacentHTML` e `innerHTML` para renderização dinâmica das cartas.
-- **Manipulação de Strings e Números**: Uso de `padStart` para formatar os IDs (`#001`, `#025`) e operações matemáticas para conversão de decímetros/hectogramas para metros/quilogramas.
+## Como executar
 
----
+Como a aplicação faz requisições para uma API externa, recomenda-se executá-la com um servidor local.
 
-## 📂 Estrutura do Código Explicação Passo a Passo
+1. Clone ou baixe este repositório.
+2. Abra a pasta `aula02a-poke-api` no editor.
+3. Inicie um servidor local, como o **Live Server** do VS Code.
+4. Acesse o endereço informado pelo servidor e interaja com a Pokédex.
 
-1. **Constantes e Seletores**: Mapeamento dos elementos HTML (`input`, `button`, `grid`, `loading`) que sofrerão interações.
-2. **`fetchPokemonData(urlOrName)`**: Função auxiliar que decide se a busca é por URL completa ou por nome/ID digitado no campo de busca.
-3. **`loadInitialPokemon(limit)`**: 
-   - Faz a requisição inicial da lista de Pokémon.
-   - Extrai as URLs individuais e usa `Promise.all` para carregar todas em paralelo.
-   - Chama a função de renderização para cada Pokémon retornado.
-4. **`renderPokemonCard(pokemon)`**: Monta o componente HTML do card com imagem oficial, tipos (badges), altura e peso, inserindo-o no container da página.
-5. **`handleSearch()`**: Captura a busca do usuário. Se o campo estiver vazio, recarrega os primeiros 20; caso contrário, busca o Pokémon específico digitado.
-6. **Controle de Estado de Interface**: Funções `showLoading` e `showError` para garantir feedback visual apropriado durante as requisições.
+Também é possível iniciar um servidor simples pelo terminal, estando dentro desta pasta:
 
----
+```bash
+python3 -m http.server 5500
+```
 
-## 🚀 ORIENTAÇÕES - DESAFIO PRÁTICO PARA OS ALUNOS
+Depois, abra [http://localhost:5500](http://localhost:5500) no navegador.
 
-Agora é a sua vez! O objetivo deste desafio é estender a Pokédex adicionando uma funcionalidade de **Modal de Detalhes Completo**.
+## Como a aplicação funciona
 
-### 📋 Requisitos do Desafio
+Ao carregar a página, a aplicação consulta a PokéAPI e busca os detalhes dos primeiros 20 Pokémon em paralelo usando `Promise.all()`. Quando o usuário se aproxima do final da lista, a `Intersection Observer API` solicita novos resultados automaticamente.
 
-Ao clicar em qualquer card de Pokémon, a aplicação deve abrir um **Modal do Bootstrap** contendo informações detalhadas do Pokémon selecionado.
+Ao clicar ou pressionar `Enter`/`Espaço` em um card, os dados do Pokémon são exibidos em um modal. As informações são renderizadas dinamicamente no DOM, e os resultados já consultados são armazenados em cache para evitar requisições repetidas.
 
-#### 1. Propriedades a Exibir no Modal:
-- **Status Base (Stats)**: Exibir barras de progresso (`progress bar` do Bootstrap) para os status:
-  - *HP* (`hp`)
-  - *Ataque* (`attack`)
-  - *Defesa* (`defense`)
-  - *Velocidade* (`speed`)
-- **Habilidades (Abilities)**: Listar as habilidades do Pokémon (ex: *Overgrow*, *Chlorophyll*).
-- **Sons / Cries (Áudio)**: Adicionar um botão ou player de áudio HTML5 (`<audio>`) para reproduzir o som oficial do Pokémon (`cries.latest` ou `cries.legacy`).
-- **Galeria de Sprites (Frente e Costas)**: Mostrar as variações Normal e Shiny (usando `sprites.front_default`, `sprites.back_default`, `sprites.front_shiny`, `sprites.back_shiny`).
+## Estrutura do projeto
 
----
+```text
+aula02a-poke-api/
+├── img/
+│   ├── pokemon-empty-pokeball.svg
+│   ├── pokebola-audio-player.svg
+│   └── video.webm
+├── js/
+│   └── app.js
+├── fonts/
+│   └── Pokemon Solid.ttf
+├── index.html
+└── readme.md
+```
 
-### 💡 Dicas de Implementação
+## Destaques da implementação
 
-1. **Adicionar o Modal ao HTML**:
-   Inclua a estrutura base de um [Modal do Bootstrap 5](https://getbootstrap.com/docs/5.3/components/modal/) no seu `index.html`.
+- **Consumo assíncrono de API:** utilização de `fetch`, `async/await` e `Promise.all`.
+- **Renderização dinâmica:** cards, stats, habilidades, sprites e controles de áudio são montados conforme os dados recebidos.
+- **Experiência de uso:** skeleton loading, modal com transições, busca, feedback de erro e carregamento infinito.
+- **Responsividade:** layout adaptado para diferentes tamanhos de tela utilizando Bootstrap e CSS customizado.
+- **Acessibilidade:** cards navegáveis por teclado, textos alternativos nas imagens e estados informados por atributos ARIA.
 
-   ```html
-   <!-- Modal de Detalhes -->
-   <div class="modal fade" id="pokemonModal" tabindex="-1" aria-hidden="true">
-     <div class="modal-dialog modal-dialog-centered">
-       <div class="modal-content">
-         <div class="modal-header">
-           <h5 class="modal-title text-capitalize" id="pokemonModalTitle">Detalhes</h5>
-           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-         </div>
-         <div class="modal-body" id="pokemonModalBody">
-           <!-- Conteúdo inserido dinamicamente via JS -->
-         </div>
-       </div>
-     </div>
-   </div>
-   ```
+## Créditos
 
-2. **Tornar o Card Clicável**:
-   No `renderPokemonCard`, adicione um evento de clique ou atributos do Bootstrap para abrir o modal e passar o ID do Pokémon.
-
-   *Exemplo adicionando classe e dataset no card:*
-   ```javascript
-   // No HTML retornado pelo renderPokemonCard, adicione:
-   // style="cursor: pointer;" onclick="openPokemonModal(${pokemon.id})"
-   ```
-
-3. **Função de Modal no JavaScript**:
-   Crie uma função `openPokemonModal(id)` que busque os dados (ou reutilize se tiver guardado em cache) e preencha o corpo do modal:
-
-   ```javascript
-   async function openPokemonModal(id) {
-     const pokemon = await fetchPokemonData(id);
-     
-     // 1. Extrair stats (hp, attack, defense, speed)
-     // 2. Extrair habilidades
-     // 3. Extrair áudio de cries
-     // 4. Montar o HTML interno do modal e exibir via Bootstrap JS API
-     
-     const modalElement = document.getElementById('pokemonModal');
-     const modal = new bootstrap.Modal(modalElement);
-     modal.show();
-   }
-   ```
-
-4. **Componente de Barras de Progresso (Bootstrap)**:
-   Para os atributos/stats, você pode renderizar a barra assim:
-   ```html
-   <div class="mb-2">
-     <small class="fw-bold">Ataque: 49</small>
-     <div class="progress" style="height: 10px;">
-       <div class="progress-bar bg-danger" role="progressbar" style="width: 49%;" aria-valuenow="49" aria-valuemin="0" aria-valuemax="100"></div>
-     </div>
-   </div>
-   ```
-
----
-
-![Demonstração da Tela Inicial - Pokédex](./img/tela-inicial.png)
-
-![Demonstração da Tela Modal - Pokédex](./img/tela-modal.png)
+Dados e imagens dos Pokémon são fornecidos pela [PokéAPI](https://pokeapi.co/). O projeto foi desenvolvido como atividade prática de JavaScript e consumo de APIs.
