@@ -4,11 +4,9 @@ Aplicação web desenvolvida para consultar e explorar informações de Pokémon
 
 ## Demonstração
 
-O vídeo abaixo mostra o funcionamento da aplicação:
+A animação abaixo mostra o funcionamento da aplicação:
 
-<video src="https://raw.githubusercontent.com/Fatec-Tech/ps1-ads4-2026-2-assis/main/aula02a-poke-api/img/video.webm" controls width="100%">
-  Seu navegador não consegue reproduzir este vídeo. [Assista ao vídeo da demonstração](./img/video.webm).
-</video>
+![Demonstração da Pokédex](./img/download.gif)
 
 ## Funcionalidades
 
@@ -65,6 +63,7 @@ aula02a-poke-api/
 ├── img/
 │   ├── pokemon-empty-pokeball.svg
 │   ├── pokebola-audio-player.svg
+│   ├── download.gif
 │   └── video.webm
 ├── js/
 │   └── app.js
