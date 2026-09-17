@@ -366,6 +366,7 @@ function renderPokemonHud(pokemon) {
 			</aside>
 
 			<main class="pokemon-hud-hero">
+				<span class="pokemon-hud-hero-name-bg" aria-hidden="true">${pokemon.name}</span>
 				<img src="${imageUrl}" class="pokemon-hud-hero-image" alt="${pokemon.name}" />
 				<div id="${heroCarouselId}" class="carousel slide pokemon-hud-hero-sprite-carousel" data-bs-interval="false" aria-label="Sprites de ${pokemon.name}">
 					<div class="carousel-inner">

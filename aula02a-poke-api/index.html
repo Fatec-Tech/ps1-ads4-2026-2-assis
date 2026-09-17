@@ -342,6 +342,25 @@
 			.pokemon-hud-hero:hover::before {
 				animation-play-state: paused;
 			}
+			.pokemon-hud-hero-name-bg {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				z-index: 0;
+				width: max-content;
+				color: #fff;
+				font-family: 'Pokemon Solid', 'Nunito', sans-serif;
+				font-size: clamp(5rem, 12vw, 12rem);
+				font-weight: 900;
+				letter-spacing: 0.08em;
+				line-height: 0.9;
+				opacity: 0.12;
+				text-transform: uppercase;
+				transform: translate(-50%, -50%) rotate(-8deg) scale(1.15);
+				white-space: nowrap;
+				pointer-events: none;
+				user-select: none;
+			}
 			.pokemon-hud-hero-image {
 				position: relative;
 				z-index: 1;
@@ -449,6 +468,35 @@
 				}
 			}
 			@media (max-width: 768px) {
+				.pokemon-modal-dialog .modal-body {
+					padding: 0.75rem;
+				}
+				.pokemon-hud-layout {
+					grid-template-columns: 1fr;
+					align-items: stretch;
+					gap: 0.75rem;
+					min-height: auto;
+				}
+				.pokemon-hud-hero {
+					grid-column: 1;
+					grid-row: 1;
+					min-height: 390px;
+				}
+				.pokemon-hud-hero::before {
+					width: min(78vw, 340px);
+					height: min(78vw, 340px);
+				}
+				.pokemon-hud-hero-image {
+					width: min(78vw, 420px);
+					max-height: 48vh;
+				}
+				.pokemon-hud-hero-name-bg {
+					font-size: clamp(3.5rem, 18vw, 7rem);
+					transform: translate(-50%, -50%) rotate(-8deg) scale(1.1);
+				}
+				.pokemon-hud-card {
+					padding: 0.85rem;
+				}
 				.pokemon-modal-close {
 					right: 1rem;
 				}
@@ -480,6 +528,26 @@
 				}
 				.pokemon-hud-hero .pokemon-cry-button {
 					padding-right: 0.55rem;
+				}
+			}
+			@media (max-width: 576px) {
+				.pokemon-hud-hero {
+					min-height: 330px;
+				}
+				.pokemon-hud-hero-sprite-carousel {
+					width: min(100%, 270px);
+				}
+				.pokemon-hud-hero-sprite {
+					width: 50px;
+					height: 50px;
+				}
+				.pokemon-hud-hero .pokemon-cry-button {
+					font-size: 0.8rem;
+					padding: 0.35rem 0.55rem;
+				}
+				.pokemon-hud-hero .pokemon-cry-icon {
+					width: 22px;
+					height: 22px;
 				}
 			}
 			@keyframes skeletonLoading {
