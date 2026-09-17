@@ -6,7 +6,6 @@ const pokemonSentinel = document.getElementById('pokemonSentinel');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const pokemonModalElement = document.getElementById('pokemonModal');
-const pokemonModalTitle = document.getElementById('pokemonModalTitle');
 const pokemonModalBody = document.getElementById('pokemonModalBody');
 
 const statLabels = {
@@ -343,7 +342,6 @@ function renderPokemonOverview(pokemon) {
 
 // Abre o modal e prepara o espaço para os detalhes do Pokémon selecionado.
 async function openPokemonModal(id) {
-	pokemonModalTitle.textContent = 'Carregando...';
 	pokemonModalBody.innerHTML = `
 		<div class="text-center py-4">
 			<div class="spinner-border text-danger" role="status">
@@ -361,7 +359,6 @@ async function openPokemonModal(id) {
 			pokemonTypeThemes[primaryType] || pokemonTypeThemes.normal;
 		pokemonModalElement.style.setProperty('--pokemon-color', pokemonColor);
 		pokemonModalElement.style.setProperty('--pokemon-color-dark', pokemonColorDark);
-		pokemonModalTitle.textContent = `#${String(pokemon.id).padStart(3, '0')} ${pokemon.name}`;
 		pokemonModalBody.innerHTML = `
 			${renderPokemonOverview(pokemon)}
 			<section class="pokemon-detail-section" aria-labelledby="pokemonStatsTitle">
@@ -380,7 +377,6 @@ async function openPokemonModal(id) {
 			</section>
 		`;
 	} catch (error) {
-		pokemonModalTitle.textContent = 'Erro';
 		pokemonModalBody.innerHTML = '<div class="alert alert-warning mb-0" role="alert">Não foi possível carregar os detalhes deste Pokémon.</div>';
 		console.error(error);
 	}

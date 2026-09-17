@@ -57,29 +57,48 @@
 				object-fit: contain;
 			}
 			.pokemon-modal-dialog {
-				width: calc(100vw - 32px);
-				max-width: 1440px;
-				height: calc(100vh - 32px);
-				margin: 16px auto;
+				width: 100vw;
+				max-width: none;
+				height: 100vh;
+				margin: 0;
 			}
 			.pokemon-modal-dialog .modal-content {
 				height: 100%;
 				border: 0;
-				border-radius: 1.25rem;
+				border-radius: 0;
 				overflow: hidden;
 			}
-			.pokemon-modal-dialog .modal-header {
-				padding: 1rem 1.5rem;
+			.pokemon-modal-close {
+				position: absolute;
+				top: 1rem;
+				right: 1.5rem;
+				z-index: 4;
+				display: grid;
+				width: 42px;
+				height: 42px;
+				place-items: center;
+				padding: 0;
+				border: 1px solid rgba(255, 255, 255, 0.65);
+				border-radius: 50%;
 				color: #fff;
-				background: #151923;
-				border-bottom: 4px solid var(--pokemon-color, #5969bb);
+				font-size: 1.7rem;
+				line-height: 1;
+				background: rgba(21, 25, 35, 0.6);
+				transition: background 0.2s ease, transform 0.2s ease;
 			}
-			.pokemon-modal-dialog .btn-close {
-				filter: invert(1) grayscale(100%) brightness(300%);
+			.pokemon-modal-close:hover,
+			.pokemon-modal-close:focus-visible {
+				color: #fff;
+				background: rgba(21, 25, 35, 0.9);
+				transform: scale(1.05);
 			}
 			.pokemon-modal-dialog .modal-body {
+				height: 100%;
 				padding: clamp(1rem, 3vw, 2.5rem);
 				background: #f3f4fa;
+			}
+			.pokemon-modal-dialog .modal-footer {
+				display: none;
 			}
 			.pokemon-overview {
 				padding: 0;
@@ -189,6 +208,9 @@
 				text-transform: uppercase;
 			}
 			@media (max-width: 576px) {
+				.pokemon-modal-close {
+					right: 1rem;
+				}
 				.pokemon-overview-media {
 					min-height: 220px;
 				}
@@ -361,22 +383,9 @@
 		<div class="modal fade" id="pokemonModal" tabindex="-1" aria-hidden="true">
 			<div class="modal-dialog pokemon-modal-dialog modal-dialog-centered modal-dialog-scrollable">
 				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title pokemon-font text-capitalize" id="pokemonModalTitle">
-							Detalhes
-						</h5>
-						<button
-							type="button"
-							class="btn-close"
-							data-bs-dismiss="modal"
-							aria-label="Fechar"
-						></button>
-					</div>
+					<button type="button" class="pokemon-modal-close" data-bs-dismiss="modal" aria-label="Fechar">&times;</button>
 					<div class="modal-body" id="pokemonModalBody">
 						<!-- Conteúdo inserido dinamicamente via JavaScript -->
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
 					</div>
 				</div>
 			</div>
