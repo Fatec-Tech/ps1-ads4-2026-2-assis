@@ -268,62 +268,6 @@ function renderPokemonCryButton(cries) {
 	`;
 }
 
-function renderPokemonSprites(sprites, pokemonId) {
-	const spriteItems = [
-		['Frente normal', sprites.front_default],
-		['Costas normal', sprites.back_default],
-		['Frente shiny', sprites.front_shiny],
-		['Costas shiny', sprites.back_shiny],
-	].filter(([, imageUrl]) => imageUrl);
-
-	if (!spriteItems.length) {
-		return '<p class="text-secondary mb-0">Sprites não disponíveis.</p>';
-	}
-
-	const carouselId = `spriteCarousel${pokemonId}`;
-	const spritePairs = [];
-	for (let index = 0; index < spriteItems.length; index += 2) {
-		spritePairs.push(spriteItems.slice(index, index + 2));
-	}
-
-	return `
-		<div id="${carouselId}" class="carousel slide pokemon-sprite-carousel" data-bs-interval="false">
-			<div class="carousel-inner">
-				${spritePairs
-					.map(
-						(pair, pairIndex) => `
-							<div class="carousel-item${pairIndex === 0 ? ' active' : ''}">
-								<div class="row row-cols-2 g-3 text-center">
-									${pair
-										.map(
-											([label, imageUrl]) => `
-												<div class="col">
-													<div class="border rounded p-2 h-100">
-														<img src="${imageUrl}" class="img-fluid" alt="${label}" style="max-height: 110px;" />
-														<small class="d-block text-capitalize text-secondary mt-1">${label}</small>
-													</div>
-												</div>
-											`
-										)
-										.join('')}
-								</div>
-							</div>
-						`
-					)
-					.join('')}
-			</div>
-			${spritePairs.length > 1 ? `
-				<button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev" aria-label="Sprites anteriores">
-					<span class="carousel-control-prev-icon" aria-hidden="true"></span>
-				</button>
-				<button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next" aria-label="Próximos sprites">
-					<span class="carousel-control-next-icon" aria-hidden="true"></span>
-				</button>
-			` : ''}
-		</div>
-	`;
-}
-
 function renderPokemonOverview(pokemon) {
 	const imageUrl =
 		pokemon.sprites.other?.['official-artwork']?.front_default ||
@@ -372,10 +316,24 @@ function renderPokemonOverview(pokemon) {
 }
 
 function renderPokemonHud(pokemon) {
+	const animatedSprites = pokemon.sprites.versions?.['generation-v']?.['black-white']?.animated;
 	const imageUrl =
 		pokemon.sprites.other?.home?.front_default ||
 		pokemon.sprites.other?.['official-artwork']?.front_default ||
 		pokemon.sprites.front_default;
+	const frontSprite =
+		animatedSprites?.front_default ||
+		pokemon.sprites.front_default ||
+		pokemon.sprites.other?.home?.front_default ||
+		pokemon.sprites.other?.['official-artwork']?.front_default;
+	const backSprite = animatedSprites?.back_default || pokemon.sprites.back_default || frontSprite;
+	const frontShinySprite = animatedSprites?.front_shiny || pokemon.sprites.front_shiny;
+	const backShinySprite = animatedSprites?.back_shiny || pokemon.sprites.back_shiny;
+	const heroSpriteSlides = [
+		['Normal', frontSprite, backSprite],
+		['Shiny', frontShinySprite, backShinySprite],
+	].filter(([, front, back]) => front || back);
+	const heroCarouselId = `heroSpriteCarousel${pokemon.id}`;
 	const types = pokemon.types
 		.map(({ type }) => {
 			const [color] = pokemonTypeThemes[type.name] || pokemonTypeThemes.normal;
@@ -409,7 +367,29 @@ function renderPokemonHud(pokemon) {
 
 			<main class="pokemon-hud-hero">
 				<img src="${imageUrl}" class="pokemon-hud-hero-image" alt="${pokemon.name}" />
-				${renderPokemonCryButton(pokemon.cries)}
+				<div id="${heroCarouselId}" class="carousel slide pokemon-hud-hero-sprite-carousel" data-bs-interval="false" aria-label="Sprites de ${pokemon.name}">
+					<div class="carousel-inner">
+						${heroSpriteSlides.map(([label, front, back], index) => `
+							<div class="carousel-item${index === 0 ? ' active' : ''}">
+								<div class="pokemon-hud-hero-sprite-row">
+									${front ? `<img src="${front}" class="pokemon-hud-hero-sprite" alt="Frente ${label} de ${pokemon.name}" />` : '<span class="pokemon-hud-hero-sprite"></span>'}
+									${back ? `<img src="${back}" class="pokemon-hud-hero-sprite" alt="Costas ${label} de ${pokemon.name}" />` : '<span class="pokemon-hud-hero-sprite"></span>'}
+								</div>
+							</div>
+						`).join('')}
+					</div>
+					${heroSpriteSlides.length > 1 ? `
+						<button class="carousel-control-prev pokemon-hud-hero-sprite-prev" type="button" data-bs-target="#${heroCarouselId}" data-bs-slide="prev" aria-label="Sprites anteriores">
+							<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+						</button>
+						<button class="carousel-control-next pokemon-hud-hero-sprite-next" type="button" data-bs-target="#${heroCarouselId}" data-bs-slide="next" aria-label="Próximos sprites">
+							<span class="carousel-control-next-icon" aria-hidden="true"></span>
+						</button>
+					` : ''}
+				</div>
+				<div class="pokemon-hud-hero-sprite-audio">
+					${renderPokemonCryButton(pokemon.cries)}
+				</div>
 			</main>
 
 			<aside class="pokemon-hud-column">
@@ -429,10 +409,6 @@ function renderPokemonHud(pokemon) {
 			</aside>
 		</div>
 
-		<section class="pokemon-hud-card pokemon-hud-sprites" aria-labelledby="pokemonSpritesTitle">
-			<h6 id="pokemonSpritesTitle">Galeria de sprites</h6>
-			${renderPokemonSprites(pokemon.sprites, pokemon.id)}
-		</section>
 	`;
 }
 

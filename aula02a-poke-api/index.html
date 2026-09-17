@@ -288,6 +288,11 @@
 				border: 1px solid rgba(255, 255, 255, 0.2);
 				border-radius: 50%;
 				box-shadow: 0 0 0 28px rgba(255, 255, 255, 0.04), 0 0 0 56px rgba(255, 255, 255, 0.03);
+				animation: heroCircleRotate 14s linear infinite;
+				pointer-events: none;
+			}
+			.pokemon-hud-hero:hover::before {
+				animation-play-state: paused;
 			}
 			.pokemon-hud-hero-image {
 				position: relative;
@@ -296,14 +301,94 @@
 				max-height: 72vh;
 				object-fit: contain;
 				filter: drop-shadow(0 1.5rem 1.5rem rgba(0, 0, 0, 0.28));
-				animation: heroFloat 4s ease-in-out infinite;
+				animation: heroFloatCentered 4s ease-in-out infinite;
+			}
+			.pokemon-hud-hero-sprite-audio {
+				position: absolute;
+				bottom: 1.5rem;
+				left: 50% !important;
+				right: auto !important;
+				z-index: 3;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 0.4rem;
+				transform: translateX(-50%);
+			}
+			.pokemon-hud-hero-sprite-carousel {
+				position: absolute;
+				bottom: 1.5rem;
+				left: 50% !important;
+				right: auto !important;
+				z-index: 2;
+				display: flex;
+				align-items: center;
+				width: min(100%, 420px);
+				transform: translateX(-50%);
+			}
+			.pokemon-hud-hero-sprite-carousel .carousel-inner {
+				order: 2;
+				flex: 1 1 auto;
+				min-width: 0;
+				width: 100%;
+			}
+			.pokemon-hud-hero-sprite-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 0 0.25rem;
+			}
+			.pokemon-hud-hero-sprite {
+				width: 78px;
+				height: 78px;
+				object-fit: contain;
+				filter: none;
+			}
+			.pokemon-hud-hero .pokemon-cry-button {
+				position: relative;
+				bottom: auto;
+				left: auto;
+				transform: none;
+			}
+			.pokemon-hud-hero-sprite-carousel .carousel-control-prev,
+			.pokemon-hud-hero-sprite-carousel .carousel-control-next {
+				position: static !important;
+				order: 1;
+				flex: 0 0 1.75rem;
+				width: 1.75rem;
+				top: auto;
+				bottom: auto;
+				height: 2rem;
+				transform: none;
+			}
+			.pokemon-hud-hero-sprite-carousel .carousel-control-next {
+				order: 3;
+			}
+			.pokemon-hud-hero .pokemon-cry-icon {
+				width: 26px;
+				height: 26px;
+			}
+			.pokemon-hud-hero-sprite-audio .pokemon-cry-audio {
+				display: none;
+			}
+			.pokemon-hud-hero-sprite-audio img {
+				object-fit: contain;
+			}
+			.pokemon-hud-hero-sprite-audio .pokemon-hud-hero-sprite {
+				max-height: 78px;
+				object-fit: contain;
 			}
 			@keyframes heroFloat {
 				0%, 100% { transform: translateY(0); }
 				50% { transform: translateY(-8px); }
 			}
-			.pokemon-hud-sprites {
-				margin-top: 1rem;
+			@keyframes heroFloatCentered {
+				0%, 100% { transform: translateY(-3rem); }
+				50% { transform: translateY(calc(-3rem - 8px)); }
+			}
+			@keyframes heroCircleRotate {
+				from { transform: rotate(0deg); }
+				to { transform: rotate(360deg); }
 			}
 			@media (max-width: 992px) {
 				.pokemon-hud-layout {
@@ -332,6 +417,21 @@
 					width: 100vw;
 					height: 100vh;
 					margin: 0;
+				}
+				.pokemon-hud-hero-sprite {
+					width: 58px;
+					height: 58px;
+				}
+				.pokemon-hud-hero-sprite-audio {
+					bottom: 1rem;
+					gap: 0.15rem;
+				}
+				.pokemon-hud-hero-sprite-carousel {
+					bottom: 1rem;
+					width: min(100%, 300px);
+				}
+				.pokemon-hud-hero .pokemon-cry-button {
+					padding-right: 0.55rem;
 				}
 			}
 			@keyframes skeletonLoading {
