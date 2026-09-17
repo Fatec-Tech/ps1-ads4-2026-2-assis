@@ -1,4 +1,5 @@
 const API_URL = 'https://pokeapi.co/api/v2/pokemon';
+const pokemonCache = new Map();
 
 const pokemonGrid = document.getElementById('pokemonGrid');
 const loading = document.getElementById('loading');
@@ -35,12 +36,18 @@ async function fetchPokemonData(urlOrName) {
 		? urlOrName
 		: `${API_URL}/${urlOrName.toLowerCase().trim()}`;
 
+	if (pokemonCache.has(url)) {
+		return pokemonCache.get(url);
+	}
+
 	const response = await fetch(url);
 	if (!response.ok) {
 		throw new Error('Pokémon não encontrado');
   }
   console.log('Response:', response); // Log da resposta para depuração
-	return await response.json();
+	const pokemon = await response.json();
+	pokemonCache.set(url, pokemon);
+	return pokemon;
 }
 
 // Função para carregar a lista inicial (ex: primeiros 20)
