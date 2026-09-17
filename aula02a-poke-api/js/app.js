@@ -178,6 +178,36 @@ function renderPokemonCries(cries) {
 	</audio>`;
 }
 
+function renderPokemonSprites(sprites) {
+	const spriteItems = [
+		['Frente normal', sprites.front_default],
+		['Costas normal', sprites.back_default],
+		['Frente shiny', sprites.front_shiny],
+		['Costas shiny', sprites.back_shiny],
+	].filter(([, imageUrl]) => imageUrl);
+
+	if (!spriteItems.length) {
+		return '<p class="text-secondary mb-0">Sprites não disponíveis.</p>';
+	}
+
+	return `
+		<div class="row row-cols-2 g-3 text-center">
+			${spriteItems
+				.map(
+					([label, imageUrl]) => `
+						<div class="col">
+							<div class="border rounded p-2 h-100">
+								<img src="${imageUrl}" class="img-fluid" alt="${label}" style="max-height: 110px;" />
+								<small class="d-block text-capitalize text-secondary mt-1">${label}</small>
+							</div>
+						</div>
+					`
+				)
+				.join('')}
+		</div>
+	`;
+}
+
 // Abre o modal e prepara o espaço para os detalhes do Pokémon selecionado.
 async function openPokemonModal(id) {
 	pokemonModalTitle.textContent = 'Carregando...';
@@ -208,6 +238,11 @@ async function openPokemonModal(id) {
 			<section class="mt-4" aria-labelledby="pokemonCriesTitle">
 				<h6 id="pokemonCriesTitle" class="border-bottom pb-2 mb-3">Som do Pokémon</h6>
 				${renderPokemonCries(pokemon.cries)}
+			</section>
+
+			<section class="mt-4" aria-labelledby="pokemonSpritesTitle">
+				<h6 id="pokemonSpritesTitle" class="border-bottom pb-2 mb-3">Galeria de sprites</h6>
+				${renderPokemonSprites(pokemon.sprites)}
 			</section>
 		`;
 	} catch (error) {
