@@ -2,7 +2,6 @@ const API_URL = 'https://pokeapi.co/api/v2/pokemon';
 const pokemonCache = new Map();
 
 const pokemonGrid = document.getElementById('pokemonGrid');
-const loading = document.getElementById('loading');
 const pokemonSentinel = document.getElementById('pokemonSentinel');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
@@ -68,7 +67,7 @@ async function loadPokemonPage(reset = false) {
 	}
 
 	isLoadingPage = true;
-	showLoading(true);
+	renderSkeletonCards(PAGE_SIZE);
 
 	try {
 		const response = await fetch(`${API_URL}?limit=${PAGE_SIZE}&offset=${currentOffset}`);
@@ -82,7 +81,10 @@ async function loadPokemonPage(reset = false) {
 		);
 		const pokemonList = await Promise.all(pokemonPromises);
 
-		pokemonList.forEach(renderPokemonCard);
+		const skeletons = [...pokemonGrid.querySelectorAll('.skeleton-item')];
+		pokemonList.forEach((pokemon, index) => {
+			renderPokemonCard(pokemon, skeletons[index]);
+		});
 		currentOffset += data.results.length;
 		hasMorePokemon = Boolean(data.next);
 	} catch (error) {
@@ -90,7 +92,7 @@ async function loadPokemonPage(reset = false) {
 		console.error(error);
 	} finally {
 		isLoadingPage = false;
-		showLoading(false);
+		removeSkeletonCards();
 	}
 }
 
@@ -98,8 +100,30 @@ function loadInitialPokemon() {
 	loadPokemonPage(true);
 }
 
+function renderSkeletonCards(count) {
+	const skeletonHTML = Array.from({ length: count }, () => `
+		<div class="col skeleton-item" aria-hidden="true">
+			<div class="card h-100 shadow-sm border-0 skeleton-card p-3">
+				<div class="skeleton-image rounded mb-3"></div>
+				<div class="skeleton-line w-75 mb-3"></div>
+				<div class="skeleton-line w-50 mb-4"></div>
+				<div class="row g-2">
+					<div class="col-6"><div class="skeleton-line"></div></div>
+					<div class="col-6"><div class="skeleton-line"></div></div>
+				</div>
+			</div>
+		</div>
+	`).join('');
+
+	pokemonGrid.insertAdjacentHTML('beforeend', skeletonHTML);
+}
+
+function removeSkeletonCards() {
+	pokemonGrid.querySelectorAll('.skeleton-item').forEach((skeleton) => skeleton.remove());
+}
+
 // Função para criar a estrutura visual do Card no Bootstrap
-function renderPokemonCard(pokemon) {
+function renderPokemonCard(pokemon, skeleton = null) {
   console.log('Rendering Pokémon:', pokemon); // Log do Pokémon para depuração
 	// Pega a imagem oficial de alta qualidade (dream_world ou official-artwork)
 	const imageUrl =
@@ -147,7 +171,11 @@ function renderPokemonCard(pokemon) {
         </div>
       `;
 
-	pokemonGrid.insertAdjacentHTML('beforeend', cardHTML);
+	if (skeleton) {
+		skeleton.outerHTML = cardHTML;
+	} else {
+		pokemonGrid.insertAdjacentHTML('beforeend', cardHTML);
+	}
 }
 
 function renderPokemonStats(stats) {
@@ -292,25 +320,16 @@ async function handleSearch() {
 	}
 
 	isSearchMode = true;
-	showLoading(true);
 	pokemonGrid.innerHTML = '';
+	renderSkeletonCards(1);
 
 	try {
 		const pokemon = await fetchPokemonData(query);
-		renderPokemonCard(pokemon);
+		const skeleton = pokemonGrid.querySelector('.skeleton-item');
+		renderPokemonCard(pokemon, skeleton);
+		removeSkeletonCards();
 	} catch (error) {
 		showError(`Nenhum Pokémon encontrado com o termo "${query}".`);
-	} finally {
-		showLoading(false);
-	}
-}
-
-// Utilitários de UI
-function showLoading(state) {
-	if (state) {
-		loading.classList.remove('d-none');
-	} else {
-		loading.classList.add('d-none');
 	}
 }
 

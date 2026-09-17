@@ -18,6 +18,25 @@
 				width: var(--stat-width);
 				animation: fillStatBar 1s cubic-bezier(0.16, 1, 0.3, 1) both;
 			}
+			.skeleton-card {
+				min-height: 300px;
+				background: linear-gradient(90deg, #e9ecef 25%, #f8f9fa 50%, #e9ecef 75%);
+				background-size: 200% 100%;
+				animation: skeletonLoading 1.4s ease-in-out infinite;
+			}
+			.skeleton-image {
+				height: 160px;
+				background-color: rgba(173, 181, 189, 0.35);
+			}
+			.skeleton-line {
+				height: 14px;
+				border-radius: 999px;
+				background-color: rgba(173, 181, 189, 0.45);
+			}
+			@keyframes skeletonLoading {
+				from { background-position: 200% 0; }
+				to { background-position: -200% 0; }
+			}
 			.stat-progress .stat-pokemon {
 				position: absolute;
 				top: 50%;
@@ -98,12 +117,6 @@
 
 			<div id="pokemonSentinel" class="py-2" aria-hidden="true"></div>
 
-			<!-- Spinner exibido quando a próxima página está carregando -->
-			<div id="loading" class="text-center my-4 d-none">
-				<div class="spinner-border text-danger" role="status">
-					<span class="visually-hidden">Carregando mais Pokémon...</span>
-				</div>
-			</div>
 		</div>
 
 		<!-- Modal de detalhes do Pokémon -->
