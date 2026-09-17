@@ -6,7 +6,7 @@ Aplicação web desenvolvida para consultar e explorar informações de Pokémon
 
 A animação abaixo mostra o funcionamento da aplicação:
 
-![Demonstração da Pokédex](./img/pokedex.gif)
+![Demonstração da Pokédex](./img/poke.gif)
 
 ## Funcionalidades
 
@@ -63,7 +63,7 @@ aula02a-poke-api/
 ├── img/
 │   ├── pokemon-empty-pokeball.svg
 │   ├── pokebola-audio-player.svg
-│   ├── pokedex.gif
+│   ├── poke.gif
 │   └── video.webm
 ├── js/
 │   └── app.js

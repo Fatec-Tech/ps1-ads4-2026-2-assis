@@ -2,6 +2,14 @@
 
 Repositório com os projetos desenvolvidos durante as aulas de JavaScript, com foco em manipulação do DOM, eventos, armazenamento local, consumo de APIs e renderização dinâmica de dados.
 
+## Projeto em destaque: Pokédex Interativa
+
+A Pokédex é o projeto de destaque deste repositório. Ela utiliza a PokéAPI para exibir Pokémon, permite pesquisar por nome ou número e apresenta detalhes, status, habilidades, sprites e sons em uma interface responsiva.
+
+![Demonstração da Pokédex](./aula02a-poke-api/img/poke.gif)
+
+🔗 [Abrir Pokédex](./aula02a-poke-api/index.html) · [Ver documentação](./aula02a-poke-api/readme.md)
+
 ## Projetos
 
 ### 1. Cadastro de Pacientes — Manipulação do DOM
