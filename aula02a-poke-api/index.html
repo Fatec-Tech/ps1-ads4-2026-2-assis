@@ -33,6 +33,11 @@
 				border-radius: 999px;
 				background-color: rgba(173, 181, 189, 0.45);
 			}
+			.pokemon-modal-image {
+				width: min(100%, 240px);
+				max-height: 220px;
+				object-fit: contain;
+			}
 			@keyframes skeletonLoading {
 				from { background-position: 200% 0; }
 				to { background-position: -200% 0; }
@@ -121,7 +126,7 @@
 
 		<!-- Modal de detalhes do Pokémon -->
 		<div class="modal fade" id="pokemonModal" tabindex="-1" aria-hidden="true">
-			<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
 				<div class="modal-content">
 					<div class="modal-header">
 						<h5 class="modal-title text-capitalize" id="pokemonModalTitle">
@@ -136,6 +141,9 @@
 					</div>
 					<div class="modal-body" id="pokemonModalBody">
 						<!-- Conteúdo inserido dinamicamente via JavaScript -->
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
 					</div>
 				</div>
 			</div>

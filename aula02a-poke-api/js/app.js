@@ -266,6 +266,42 @@ function renderPokemonSprites(sprites) {
 	`;
 }
 
+function renderPokemonOverview(pokemon) {
+	const imageUrl =
+		pokemon.sprites.other?.['official-artwork']?.front_default ||
+		pokemon.sprites.front_default;
+	const types = pokemon.types
+		.map(({ type }) => `<span class="badge bg-danger text-capitalize me-1">${type.name}</span>`)
+		.join('');
+
+	return `
+		<div class="row align-items-center g-3 mb-4 pb-3 border-bottom">
+			<div class="col-12 col-md-5 text-center">
+				<img src="${imageUrl}" class="img-fluid pokemon-modal-image" alt="${pokemon.name}" />
+			</div>
+			<div class="col-12 col-md-7">
+				<p class="text-secondary mb-1">#${String(pokemon.id).padStart(3, '0')}</p>
+				<h4 class="text-capitalize fw-bold mb-2">${pokemon.name}</h4>
+				<div class="mb-3">${types}</div>
+				<div class="row text-center g-2">
+					<div class="col-6">
+						<div class="bg-light rounded p-2">
+							<small class="text-secondary d-block">Altura</small>
+							<strong>${(pokemon.height / 10).toFixed(1)} m</strong>
+						</div>
+					</div>
+					<div class="col-6">
+						<div class="bg-light rounded p-2">
+							<small class="text-secondary d-block">Peso</small>
+							<strong>${(pokemon.weight / 10).toFixed(1)} kg</strong>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	`;
+}
+
 // Abre o modal e prepara o espaço para os detalhes do Pokémon selecionado.
 async function openPokemonModal(id) {
 	pokemonModalTitle.textContent = 'Carregando...';
@@ -281,8 +317,9 @@ async function openPokemonModal(id) {
 
 	try {
 		const pokemon = await fetchPokemonData(id);
-		pokemonModalTitle.textContent = pokemon.name;
+		pokemonModalTitle.textContent = `#${String(pokemon.id).padStart(3, '0')} ${pokemon.name}`;
 		pokemonModalBody.innerHTML = `
+			${renderPokemonOverview(pokemon)}
 			<section aria-labelledby="pokemonStatsTitle">
 				<h6 id="pokemonStatsTitle" class="border-bottom pb-2 mb-3">Status base</h6>
 				${renderPokemonStats(pokemon.stats)}
