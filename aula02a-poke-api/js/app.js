@@ -30,6 +30,27 @@ const statColors = {
 	speed: '#0dcaf0',
 };
 
+const pokemonTypeThemes = {
+	normal: ['#8b95a5', '#566170'],
+	fighting: ['#c94b4b', '#7f2934'],
+	flying: ['#7198d4', '#45649a'],
+	poison: ['#a15ab5', '#683578'],
+	ground: ['#b8955b', '#795d31'],
+	rock: ['#9b8b70', '#625642'],
+	bug: ['#86a846', '#536b29'],
+	ghost: ['#7668ad', '#493d79'],
+	steel: ['#71818c', '#48545d'],
+	fire: ['#e47743', '#a94627'],
+	water: ['#4e91d9', '#2d5e9e'],
+	grass: ['#5da36b', '#367045'],
+	electric: ['#d6a928', '#8e6d0d'],
+	psychic: ['#d05a86', '#8f3457'],
+	ice: ['#62b8c8', '#397d8c'],
+	dragon: ['#6e69c7', '#403c8d'],
+	dark: ['#68636f', '#3e3946'],
+	fairy: ['#d889a8', '#96506d'],
+};
+
 // Função para buscar os detalhes individuais de um Pokémon
 async function fetchPokemonData(urlOrName) {
 	const url = urlOrName.startsWith('http')
@@ -129,12 +150,14 @@ function renderPokemonCard(pokemon, skeleton = null) {
 	const imageUrl =
 		pokemon.sprites.other['official-artwork'].front_default ||
 		pokemon.sprites.front_default;
+	const primaryType = pokemon.types[0]?.type.name || 'normal';
+	const [cardTypeColor, cardTypeDark] = pokemonTypeThemes[primaryType] || pokemonTypeThemes.normal;
 
 	// Mapeia os tipos para Badges do Bootstrap
 	const typesBadges = pokemon.types
 		.map(
 			(t) =>
-				`<span class="badge bg-secondary badge-type">${t.type.name}</span>`
+				`<span class="badge badge-type" style="background-color: ${(pokemonTypeThemes[t.type.name] || pokemonTypeThemes.normal)[0]};">${t.type.name}</span>`
 		)
 		.join('');
 
@@ -144,14 +167,14 @@ function renderPokemonCard(pokemon, skeleton = null) {
 
 	const cardHTML = `
         <div class="col">
-          <div class="card h-100 shadow-sm pokemon-card border-0" data-pokemon-id="${pokemon.id}" role="button" tabindex="0" aria-label="Ver detalhes de ${pokemon.name}">
-            <div class="text-center p-3 bg-white rounded-top">
-              <img src="${imageUrl}" class="card-img-top img-fluid" style="max-height: 160px; object-fit: contain;" alt="${pokemon.name}">
+          <div class="card h-100 shadow-sm pokemon-card border-0" style="--card-type-color: ${cardTypeColor}; --card-type-dark: ${cardTypeDark};" data-pokemon-id="${pokemon.id}" role="button" tabindex="0" aria-label="Ver detalhes de ${pokemon.name}">
+            <div class="pokemon-card-image text-center p-3 rounded-top d-flex align-items-center justify-content-center">
+              <img src="${imageUrl}" class="card-img-top img-fluid" style="max-height: 170px; object-fit: contain;" alt="${pokemon.name}">
             </div>
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="card-title text-capitalize fw-bold m-0">${pokemon.name}</h5>
-                <small class="text-muted">#${String(pokemon.id).padStart(3, '0')}</small>
+                <h5 class="card-title pokemon-font text-capitalize fw-bold m-0">${pokemon.name}</h5>
+                <small class="pokemon-number text-muted">#${String(pokemon.id).padStart(3, '0')}</small>
               </div>
               <div class="mb-3">
                 ${typesBadges}
@@ -166,6 +189,7 @@ function renderPokemonCard(pokemon, skeleton = null) {
                   <strong>${weightInKg} kg</strong>
                 </div>
               </div>
+              <div class="pokemon-details-hint text-center border-top mt-3 pt-3">Ver detalhes</div>
             </div>
           </div>
         </div>
@@ -213,27 +237,38 @@ function renderPokemonAbilities(abilities) {
 	}
 
 	return `
-		<ul class="list-group list-group-flush">
+		<div class="row row-cols-1 row-cols-sm-2 g-2">
 			${abilities
 				.map(
-					({ ability }) =>
-						`<li class="list-group-item text-capitalize px-0">${ability.name}</li>`
+					({ ability, is_hidden }, index) => `
+						<div class="col">
+							<div class="ability-item">
+								<span class="ability-number">${index + 1}</span>
+								<div>
+									<div class="ability-name text-capitalize">${ability.name}</div>
+									${is_hidden ? '<small class="ability-hidden-label text-secondary">Habilidade oculta</small>' : ''}
+								</div>
+							</div>
+						</div>
+					`
 				)
 				.join('')}
-		</ul>
+		</div>
 	`;
 }
 
-function renderPokemonCries(cries) {
+function renderPokemonCryButton(cries) {
 	const cryUrl = cries.latest || cries.legacy;
 
-	if (!cryUrl) {
-		return '<p class="text-secondary mb-0">Áudio não disponível.</p>';
-	}
+	if (!cryUrl) return '';
 
-	return `<audio class="w-100" controls preload="none" src="${cryUrl}">
-		Seu navegador não suporta a reprodução de áudio.
-	</audio>`;
+	return `
+		<button type="button" class="btn btn-light btn-sm rounded-pill pokemon-cry-button" data-cry-url="${cryUrl}">
+			<img class="pokemon-cry-icon" src="img/pokebola-audio-player.svg" alt="" aria-hidden="true" />
+			<span class="pokemon-cry-label">Ouvir som</span>
+		</button>
+		<audio class="pokemon-cry-audio d-none" src="${cryUrl}"></audio>
+	`;
 }
 
 function renderPokemonSprites(sprites) {
@@ -271,17 +306,21 @@ function renderPokemonOverview(pokemon) {
 		pokemon.sprites.other?.['official-artwork']?.front_default ||
 		pokemon.sprites.front_default;
 	const types = pokemon.types
-		.map(({ type }) => `<span class="badge bg-danger text-capitalize me-1">${type.name}</span>`)
+		.map(({ type }) => {
+			const [color] = pokemonTypeThemes[type.name] || pokemonTypeThemes.normal;
+			return `<span class="badge text-capitalize me-1" style="background-color: ${color};">${type.name}</span>`;
+		})
 		.join('');
 
 	return `
-		<div class="row align-items-center g-3 mb-4 pb-3 border-bottom">
-			<div class="col-12 col-md-5 text-center">
+		<div class="row align-items-stretch g-0 mb-4 pokemon-overview">
+			<div class="col-12 col-md-5 pokemon-overview-media text-center p-3 d-flex align-items-center justify-content-center">
 				<img src="${imageUrl}" class="img-fluid pokemon-modal-image" alt="${pokemon.name}" />
+				${renderPokemonCryButton(pokemon.cries)}
 			</div>
-			<div class="col-12 col-md-7">
+			<div class="col-12 col-md-7 p-4 d-flex flex-column justify-content-center">
 				<p class="text-secondary mb-1">#${String(pokemon.id).padStart(3, '0')}</p>
-				<h4 class="text-capitalize fw-bold mb-2">${pokemon.name}</h4>
+				<h4 class="pokemon-font text-capitalize fw-bold mb-2">${pokemon.name}</h4>
 				<div class="mb-3">${types}</div>
 				<div class="row text-center g-2">
 					<div class="col-6">
@@ -317,25 +356,25 @@ async function openPokemonModal(id) {
 
 	try {
 		const pokemon = await fetchPokemonData(id);
+		const primaryType = pokemon.types[0]?.type.name || 'normal';
+		const [pokemonColor, pokemonColorDark] =
+			pokemonTypeThemes[primaryType] || pokemonTypeThemes.normal;
+		pokemonModalElement.style.setProperty('--pokemon-color', pokemonColor);
+		pokemonModalElement.style.setProperty('--pokemon-color-dark', pokemonColorDark);
 		pokemonModalTitle.textContent = `#${String(pokemon.id).padStart(3, '0')} ${pokemon.name}`;
 		pokemonModalBody.innerHTML = `
 			${renderPokemonOverview(pokemon)}
-			<section aria-labelledby="pokemonStatsTitle">
+			<section class="pokemon-detail-section" aria-labelledby="pokemonStatsTitle">
 				<h6 id="pokemonStatsTitle" class="border-bottom pb-2 mb-3">Status base</h6>
 				${renderPokemonStats(pokemon.stats)}
 			</section>
 
-			<section class="mt-4" aria-labelledby="pokemonAbilitiesTitle">
+			<section class="pokemon-detail-section mt-4" aria-labelledby="pokemonAbilitiesTitle">
 				<h6 id="pokemonAbilitiesTitle" class="border-bottom pb-2 mb-3">Habilidades</h6>
 				${renderPokemonAbilities(pokemon.abilities)}
 			</section>
 
-			<section class="mt-4" aria-labelledby="pokemonCriesTitle">
-				<h6 id="pokemonCriesTitle" class="border-bottom pb-2 mb-3">Som do Pokémon</h6>
-				${renderPokemonCries(pokemon.cries)}
-			</section>
-
-			<section class="mt-4" aria-labelledby="pokemonSpritesTitle">
+			<section class="pokemon-detail-section mt-4" aria-labelledby="pokemonSpritesTitle">
 				<h6 id="pokemonSpritesTitle" class="border-bottom pb-2 mb-3">Galeria de sprites</h6>
 				${renderPokemonSprites(pokemon.sprites)}
 			</section>
@@ -410,6 +449,24 @@ pokemonGrid.addEventListener('keydown', (event) => {
 		event.preventDefault();
 		openPokemonModal(card.dataset.pokemonId);
 	}
+});
+
+pokemonModalBody.addEventListener('click', (event) => {
+	const button = event.target.closest('[data-cry-url]');
+	if (!button) return;
+
+	const audio = pokemonModalBody.querySelector('.pokemon-cry-audio');
+	if (!audio) return;
+
+	audio.currentTime = 0;
+	audio.play().then(() => {
+		button.classList.add('is-playing');
+		button.querySelector('.pokemon-cry-label').textContent = 'Reproduzindo...';
+	});
+	audio.addEventListener('ended', () => {
+		button.classList.remove('is-playing');
+		button.querySelector('.pokemon-cry-label').textContent = 'Ouvir som';
+	}, { once: true });
 });
 
 // Inicialização
