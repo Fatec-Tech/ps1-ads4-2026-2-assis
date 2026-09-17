@@ -10,6 +10,48 @@
 			rel="stylesheet"
 		/>
 		<style>
+			.stat-progress {
+				position: relative;
+				overflow: visible;
+			}
+			.stat-progress .progress-bar {
+				width: var(--stat-width);
+				animation: fillStatBar 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+			}
+			.stat-progress .stat-pokemon {
+				position: absolute;
+				top: 50%;
+				left: calc(var(--stat-width) + 4px);
+				width: 18px;
+				height: 18px;
+				background-color: var(--stat-color);
+				mask: url("img/pokemon_121114.svg") center / contain no-repeat;
+				-webkit-mask: url("img/pokemon_121114.svg") center / contain no-repeat;
+				transform: translate(-50%, -50%);
+				animation: moveStatPokeball 1s cubic-bezier(0.16, 1, 0.3, 1) both, hideStatPokeball 0.25s ease-out 1s forwards;
+			}
+			@keyframes fillStatBar {
+				from { width: 0; }
+				to { width: var(--stat-width); }
+			}
+			@keyframes moveStatPokeball {
+				0% {
+					left: 0;
+					transform: translate(-50%, -50%);
+				}
+				90% {
+					left: calc(var(--stat-width) + 2px);
+					transform: translate(-50%, -50%);
+				}
+				100% {
+					left: calc(var(--stat-width) + 4px);
+					transform: translate(-50%, -50%);
+				}
+			}
+			@keyframes hideStatPokeball {
+				from { opacity: 1; }
+				to { opacity: 0; visibility: hidden; }
+			}
 			.pokemon-card {
 				transition: transform 0.2s ease-in-out;
 			}
@@ -48,13 +90,9 @@
 				</div>
 			</div>
 
-			<!-- Spinner de Carregamento -->
+			<!-- Spinner de carregamento da lista -->
 			<div id="loading" class="text-center my-5 d-none">
-				<div
-					class="spinner-border text-danger"
-					role="status"
-					style="width: 3rem; height: 3rem"
-				>
+				<div class="spinner-border text-danger" role="status">
 					<span class="visually-hidden">Carregando...</span>
 				</div>
 			</div>

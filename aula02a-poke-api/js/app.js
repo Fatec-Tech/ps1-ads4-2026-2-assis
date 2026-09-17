@@ -8,6 +8,27 @@ const pokemonModalElement = document.getElementById('pokemonModal');
 const pokemonModalTitle = document.getElementById('pokemonModalTitle');
 const pokemonModalBody = document.getElementById('pokemonModalBody');
 
+const statLabels = {
+	hp: 'HP',
+	attack: 'Ataque',
+	defense: 'Defesa',
+	speed: 'Velocidade',
+};
+
+const statBarColors = {
+	hp: 'bg-success',
+	attack: 'bg-danger',
+	defense: 'bg-warning',
+	speed: 'bg-info',
+};
+
+const statColors = {
+	hp: '#198754',
+	attack: '#dc3545',
+	defense: '#ffc107',
+	speed: '#0dcaf0',
+};
+
 // Função para buscar os detalhes individuais de um Pokémon
 async function fetchPokemonData(urlOrName) {
 	const url = urlOrName.startsWith('http')
@@ -99,6 +120,35 @@ function renderPokemonCard(pokemon) {
 	pokemonGrid.insertAdjacentHTML('beforeend', cardHTML);
 }
 
+function renderPokemonStats(stats) {
+	return Object.entries(statLabels)
+		.map(([statName, label]) => {
+			const stat = stats.find((item) => item.stat.name === statName);
+			const value = stat ? stat.base_stat : 0;
+			const progressValue = Math.min(value, 100);
+
+			return `
+				<div class="mb-3">
+					<div class="d-flex justify-content-between mb-1">
+						<small class="fw-bold">${label}</small>
+						<small class="text-secondary">${value}</small>
+					</div>
+					<div class="progress stat-progress" style="--stat-width: ${progressValue}%; --stat-color: ${statColors[statName]}; height: 18px;" aria-label="${label}: ${value}">
+						<div
+							class="progress-bar ${statBarColors[statName]}"
+							role="progressbar"
+							aria-valuenow="${value}"
+							aria-valuemin="0"
+							aria-valuemax="100"
+						></div>
+						<span class="stat-pokemon" aria-hidden="true"></span>
+					</div>
+				</div>
+			`;
+		})
+		.join('');
+}
+
 // Abre o modal e prepara o espaço para os detalhes do Pokémon selecionado.
 async function openPokemonModal(id) {
 	pokemonModalTitle.textContent = 'Carregando...';
@@ -115,7 +165,12 @@ async function openPokemonModal(id) {
 	try {
 		const pokemon = await fetchPokemonData(id);
 		pokemonModalTitle.textContent = pokemon.name;
-		pokemonModalBody.innerHTML = '<p class="text-secondary mb-0">Detalhes em preparação.</p>';
+		pokemonModalBody.innerHTML = `
+			<section aria-labelledby="pokemonStatsTitle">
+				<h6 id="pokemonStatsTitle" class="border-bottom pb-2 mb-3">Status base</h6>
+				${renderPokemonStats(pokemon.stats)}
+			</section>
+		`;
 	} catch (error) {
 		pokemonModalTitle.textContent = 'Erro';
 		pokemonModalBody.innerHTML = '<div class="alert alert-warning mb-0" role="alert">Não foi possível carregar os detalhes deste Pokémon.</div>';
