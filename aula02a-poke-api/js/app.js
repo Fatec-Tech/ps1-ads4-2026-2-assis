@@ -149,6 +149,35 @@ function renderPokemonStats(stats) {
 		.join('');
 }
 
+function renderPokemonAbilities(abilities) {
+	if (!abilities.length) {
+		return '<p class="text-secondary mb-0">Nenhuma habilidade encontrada.</p>';
+	}
+
+	return `
+		<ul class="list-group list-group-flush">
+			${abilities
+				.map(
+					({ ability }) =>
+						`<li class="list-group-item text-capitalize px-0">${ability.name}</li>`
+				)
+				.join('')}
+		</ul>
+	`;
+}
+
+function renderPokemonCries(cries) {
+	const cryUrl = cries.latest || cries.legacy;
+
+	if (!cryUrl) {
+		return '<p class="text-secondary mb-0">Áudio não disponível.</p>';
+	}
+
+	return `<audio class="w-100" controls preload="none" src="${cryUrl}">
+		Seu navegador não suporta a reprodução de áudio.
+	</audio>`;
+}
+
 // Abre o modal e prepara o espaço para os detalhes do Pokémon selecionado.
 async function openPokemonModal(id) {
 	pokemonModalTitle.textContent = 'Carregando...';
@@ -169,6 +198,16 @@ async function openPokemonModal(id) {
 			<section aria-labelledby="pokemonStatsTitle">
 				<h6 id="pokemonStatsTitle" class="border-bottom pb-2 mb-3">Status base</h6>
 				${renderPokemonStats(pokemon.stats)}
+			</section>
+
+			<section class="mt-4" aria-labelledby="pokemonAbilitiesTitle">
+				<h6 id="pokemonAbilitiesTitle" class="border-bottom pb-2 mb-3">Habilidades</h6>
+				${renderPokemonAbilities(pokemon.abilities)}
+			</section>
+
+			<section class="mt-4" aria-labelledby="pokemonCriesTitle">
+				<h6 id="pokemonCriesTitle" class="border-bottom pb-2 mb-3">Som do Pokémon</h6>
+				${renderPokemonCries(pokemon.cries)}
 			</section>
 		`;
 	} catch (error) {
