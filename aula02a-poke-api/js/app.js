@@ -268,7 +268,7 @@ function renderPokemonCryButton(cries) {
 	`;
 }
 
-function renderPokemonSprites(sprites) {
+function renderPokemonSprites(sprites, pokemonId) {
 	const spriteItems = [
 		['Frente normal', sprites.front_default],
 		['Costas normal', sprites.back_default],
@@ -280,20 +280,46 @@ function renderPokemonSprites(sprites) {
 		return '<p class="text-secondary mb-0">Sprites não disponíveis.</p>';
 	}
 
+	const carouselId = `spriteCarousel${pokemonId}`;
+	const spritePairs = [];
+	for (let index = 0; index < spriteItems.length; index += 2) {
+		spritePairs.push(spriteItems.slice(index, index + 2));
+	}
+
 	return `
-		<div class="row row-cols-2 g-3 text-center">
-			${spriteItems
-				.map(
-					([label, imageUrl]) => `
-						<div class="col">
-							<div class="border rounded p-2 h-100">
-								<img src="${imageUrl}" class="img-fluid" alt="${label}" style="max-height: 110px;" />
-								<small class="d-block text-capitalize text-secondary mt-1">${label}</small>
+		<div id="${carouselId}" class="carousel slide pokemon-sprite-carousel" data-bs-interval="false">
+			<div class="carousel-inner">
+				${spritePairs
+					.map(
+						(pair, pairIndex) => `
+							<div class="carousel-item${pairIndex === 0 ? ' active' : ''}">
+								<div class="row row-cols-2 g-3 text-center">
+									${pair
+										.map(
+											([label, imageUrl]) => `
+												<div class="col">
+													<div class="border rounded p-2 h-100">
+														<img src="${imageUrl}" class="img-fluid" alt="${label}" style="max-height: 110px;" />
+														<small class="d-block text-capitalize text-secondary mt-1">${label}</small>
+													</div>
+												</div>
+											`
+										)
+										.join('')}
+								</div>
 							</div>
-						</div>
-					`
-				)
-				.join('')}
+						`
+					)
+					.join('')}
+			</div>
+			${spritePairs.length > 1 ? `
+				<button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev" aria-label="Sprites anteriores">
+					<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+				</button>
+				<button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next" aria-label="Próximos sprites">
+					<span class="carousel-control-next-icon" aria-hidden="true"></span>
+				</button>
+			` : ''}
 		</div>
 	`;
 }
@@ -405,7 +431,7 @@ function renderPokemonHud(pokemon) {
 
 		<section class="pokemon-hud-card pokemon-hud-sprites" aria-labelledby="pokemonSpritesTitle">
 			<h6 id="pokemonSpritesTitle">Galeria de sprites</h6>
-			${renderPokemonSprites(pokemon.sprites)}
+			${renderPokemonSprites(pokemon.sprites, pokemon.id)}
 		</section>
 	`;
 }
