@@ -4,6 +4,9 @@ const pokemonGrid = document.getElementById('pokemonGrid');
 const loading = document.getElementById('loading');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
+const pokemonModalElement = document.getElementById('pokemonModal');
+const pokemonModalTitle = document.getElementById('pokemonModalTitle');
+const pokemonModalBody = document.getElementById('pokemonModalBody');
 
 // Função para buscar os detalhes individuais de um Pokémon
 async function fetchPokemonData(urlOrName) {
@@ -66,7 +69,7 @@ function renderPokemonCard(pokemon) {
 
 	const cardHTML = `
         <div class="col">
-          <div class="card h-100 shadow-sm pokemon-card border-0">
+          <div class="card h-100 shadow-sm pokemon-card border-0" data-pokemon-id="${pokemon.id}" role="button" tabindex="0" aria-label="Ver detalhes de ${pokemon.name}">
             <div class="text-center p-3 bg-white rounded-top">
               <img src="${imageUrl}" class="card-img-top img-fluid" style="max-height: 160px; object-fit: contain;" alt="${pokemon.name}">
             </div>
@@ -94,6 +97,30 @@ function renderPokemonCard(pokemon) {
       `;
 
 	pokemonGrid.insertAdjacentHTML('beforeend', cardHTML);
+}
+
+// Abre o modal e prepara o espaço para os detalhes do Pokémon selecionado.
+async function openPokemonModal(id) {
+	pokemonModalTitle.textContent = 'Carregando...';
+	pokemonModalBody.innerHTML = `
+		<div class="text-center py-4">
+			<div class="spinner-border text-danger" role="status">
+				<span class="visually-hidden">Carregando detalhes...</span>
+			</div>
+		</div>
+	`;
+
+	bootstrap.Modal.getOrCreateInstance(pokemonModalElement).show();
+
+	try {
+		const pokemon = await fetchPokemonData(id);
+		pokemonModalTitle.textContent = pokemon.name;
+		pokemonModalBody.innerHTML = '<p class="text-secondary mb-0">Detalhes em preparação.</p>';
+	} catch (error) {
+		pokemonModalTitle.textContent = 'Erro';
+		pokemonModalBody.innerHTML = '<div class="alert alert-warning mb-0" role="alert">Não foi possível carregar os detalhes deste Pokémon.</div>';
+		console.error(error);
+	}
 }
 
 // Busca específica por nome ou ID
@@ -140,6 +167,21 @@ function showError(message) {
 searchBtn.addEventListener('click', handleSearch);
 searchInput.addEventListener('keypress', (e) => {
 	if (e.key === 'Enter') handleSearch();
+});
+
+pokemonGrid.addEventListener('click', (event) => {
+	const card = event.target.closest('[data-pokemon-id]');
+	if (card) openPokemonModal(card.dataset.pokemonId);
+});
+
+pokemonGrid.addEventListener('keydown', (event) => {
+	if (event.key !== 'Enter' && event.key !== ' ') return;
+
+	const card = event.target.closest('[data-pokemon-id]');
+	if (card) {
+		event.preventDefault();
+		openPokemonModal(card.dataset.pokemonId);
+	}
 });
 
 // Inicialização
