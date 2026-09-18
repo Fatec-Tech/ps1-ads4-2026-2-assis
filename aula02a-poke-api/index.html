@@ -850,22 +850,10 @@
 				text-transform: uppercase;
 			}
 			.pokedex-brand-mark {
-				display: grid;
+				display: block;
 				width: 2.2rem;
 				height: 2.2rem;
-				place-items: center;
-				border: 0.28rem solid #202630;
-				border-radius: 50%;
-				background: linear-gradient(#e53935 0 46%, #202630 46% 56%, #fff 56%);
-				box-shadow: 0 0.3rem 0.6rem rgba(32, 38, 48, 0.18);
-			}
-			.pokedex-brand-mark::after {
-				content: '';
-				width: 0.55rem;
-				height: 0.55rem;
-				border: 0.12rem solid #202630;
-				border-radius: 50%;
-				background: #fff;
+				filter: drop-shadow(0 0.2rem 0.35rem rgba(32, 38, 48, 0.22));
 			}
 			.pokedex-header-status {
 				display: inline-flex;
@@ -890,62 +878,31 @@
 				margin-bottom: 1.8rem;
 			}
 			.pokedex-intro-row {
-				display: grid;
-				grid-template-columns: minmax(0, 1fr) minmax(170px, 0.34fr);
-				align-items: center;
-				gap: clamp(1rem, 4vw, 4rem);
 				margin-bottom: 1.8rem;
 			}
-			.pokedex-header-copy { margin-bottom: 0; }
-			.pokedex-device {
-				position: relative;
-				min-height: 11rem;
-				padding: 1rem;
-				border: 1px solid rgba(71, 93, 83, 0.2);
-				border-radius: 1rem;
-				overflow: hidden;
-				background: #24352d;
-				box-shadow: inset 0 0 0 0.35rem rgba(255, 255, 255, 0.07), inset 0 0 2rem rgba(0, 0, 0, 0.22), 0 0.8rem 1.4rem rgba(40, 58, 48, 0.14);
+			.pokedex-btn-icon {
+				display: inline-block;
+				width: 1.15rem;
+				height: 1.15rem;
+				flex: 0 0 auto;
+				background-color: currentColor;
+				mask-position: center;
+				mask-repeat: no-repeat;
+				mask-size: contain;
+				-webkit-mask-position: center;
+				-webkit-mask-repeat: no-repeat;
+				-webkit-mask-size: contain;
 			}
-			.pokedex-device::before {
-				content: '';
-				position: absolute;
-				inset: 0;
-				background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 5px);
-				pointer-events: none;
+			.pokedex-btn-icon-mon {
+				mask-image: url("img/pokemon_121114.svg");
+				-webkit-mask-image: url("img/pokemon_121114.svg");
 			}
-			.pokedex-device-lights {
-				display: flex;
-				gap: 0.3rem;
-			}
-			.pokedex-device-lights span {
-				width: 0.45rem;
-				height: 0.45rem;
-				border-radius: 50%;
-				background: #54d487;
-				box-shadow: 0 0 0.45rem #54d487;
-			}
-			.pokedex-device-lights span:nth-child(2) { background: #f5c542; box-shadow: 0 0 0.45rem #f5c542; }
-			.pokedex-device-lights span:nth-child(3) { background: #e85b5b; box-shadow: 0 0 0.45rem #e85b5b; }
-			.pokedex-device-figure {
-				display: block;
-				width: 6.5rem;
-				height: 6.5rem;
-				margin: 0.2rem auto 0;
-				filter: invert(77%) sepia(25%) saturate(580%) hue-rotate(85deg) brightness(98%);
-				opacity: 0.9;
-			}
-			.pokedex-device-caption {
-				position: absolute;
-				right: 0.8rem;
-				bottom: 0.65rem;
-				left: 0.8rem;
-				color: #9ed9b2;
-				font-family: monospace;
-				font-size: 0.58rem;
-				letter-spacing: 0.12em;
-				text-align: center;
-				text-transform: uppercase;
+			.pokedex-btn-ball-icon {
+				display: inline-block;
+				width: 1.6rem;
+				height: 1.6rem;
+				flex: 0 0 auto;
+				filter: drop-shadow(0 0.1rem 0.15rem rgba(0, 0, 0, 0.25));
 			}
 			.random-pokemon-btn {
 				margin-top: 0.8rem;
@@ -987,6 +944,11 @@
 				font-weight: 900;
 				letter-spacing: 0.12em;
 				text-transform: uppercase;
+			}
+			.pokedex-choice-intro {
+				margin: 0 0 0.75rem;
+				color: #63716a;
+				font-size: 0.9rem;
 			}
 			.pokedex-search-panel .form-control {
 				min-height: 3.1rem;
@@ -1134,8 +1096,9 @@
 				.search-input-shell { grid-column: 1 / -1; }
 				.pokedex-search-panel .input-group > .btn { width: 100%; }
 				.pokedex-search-helper { flex-direction: column; gap: 0.15rem; }
-				.pokedex-intro-row { grid-template-columns: 1fr; }
-				.pokedex-device { display: none; }
+				.pokedex-random-choice { flex-direction: column; align-items: stretch; }
+				.random-pokemon-primary,
+				.search-options-toggle { justify-content: center; }
 			}
 			/* Direção visual simples: menos decoração, mais legibilidade. */
 			.pokedex-header {
@@ -1147,8 +1110,7 @@
 				box-shadow: 0 0.35rem 1rem rgba(32, 38, 48, 0.06);
 			}
 			.pokedex-header::before,
-			.pokedex-header::after,
-			.pokedex-device { display: none; }
+			.pokedex-header::after { display: none; }
 			.pokedex-header-top { margin-bottom: 1.15rem; }
 			.pokedex-brand { font-size: 0.7rem; letter-spacing: 0.1em; }
 			.pokedex-brand-mark { width: 1.75rem; height: 1.75rem; border-width: 0.2rem; }
@@ -1161,7 +1123,7 @@
 				text-shadow: none;
 			}
 			.pokedex-header-copy p { font-size: 0.95rem; }
-			.pokedex-intro-row { display: block; margin-bottom: 0; }
+			.pokedex-intro-row { margin-bottom: 1.15rem; }
 			.pokedex-search-panel {
 				padding: 0;
 				border: 0;
@@ -1183,26 +1145,89 @@
 			.pokemon-type-chip { padding: 0.27rem 0.55rem; font-size: 0.65rem; box-shadow: none; }
 			.pokemon-type-chip:hover,
 			.pokemon-type-chip.is-active { box-shadow: 0 0 0 0.12rem rgba(32, 38, 48, 0.1); }
-			.random-pokemon-btn { margin-top: 0; padding: 0; border: 0; color: #5f6c65; background: transparent; text-decoration: underline; text-underline-offset: 0.18rem; }
-			.random-pokemon-btn:hover,
-			.random-pokemon-btn:focus-visible { color: #236b9b; background: transparent; }
+			.random-pokemon-btn { margin-top: 0; }
+			.pokedex-random-choice {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 0.85rem;
+				margin-top: 1.4rem;
+				text-align: left;
+			}
+			.random-pokemon-primary {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.55rem;
+				margin: 0;
+				padding: 0.85rem 1.5rem;
+				border: 0;
+				border-radius: 999px;
+				color: #fff;
+				font-size: 1rem;
+				background: #d93030;
+				box-shadow: 0 0.45rem 1rem rgba(217, 48, 48, 0.28);
+				transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+			}
+			.random-pokemon-primary:hover,
+			.random-pokemon-primary:focus-visible {
+				color: #fff;
+				background: #b31f1f;
+				transform: translateY(-1px);
+				box-shadow: 0 0.6rem 1.2rem rgba(217, 48, 48, 0.34);
+			}
+			.random-pokemon-primary:focus-visible {
+				outline: 2px solid #202630;
+				outline-offset: 2px;
+			}
+			.search-options-toggle {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.5rem;
+				padding: 0.75rem 1.2rem;
+				border: 1.5px solid #202630;
+				border-radius: 999px;
+				color: #202630;
+				font-size: 0.85rem;
+				font-weight: 700;
+				background: #fff;
+				transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+			}
+			.search-options-toggle:hover,
+			.search-options-toggle:focus-visible {
+				color: #fff;
+				background: #202630;
+				transform: translateY(-1px);
+			}
+			.search-options-toggle:focus-visible {
+				outline: 2px solid #d93030;
+				outline-offset: 2px;
+			}
 		</style>
 	</head>
 	<body class="bg-light">
 		<div class="container py-5">
 			<header class="pokedex-header">
 				<div class="pokedex-header-top">
-					<div class="pokedex-brand"><span class="pokedex-brand-mark" aria-hidden="true"></span>Banco de dados de Pokémon</div>
+					<div class="pokedex-brand">
+						<img src="img/pokebola-audio-player.svg" class="pokedex-brand-mark" alt="" aria-hidden="true" />
+						Banco de dados de Pokémon
+					</div>
 				</div>
 				<div class="pokedex-intro-row">
 					<div class="pokedex-header-copy">
 						<h1 class="pokemon-font">Pokédex</h1>
 						<p>Comece sua jornada: explore espécies, tipos e gerações.</p>
+						<div class="pokedex-random-choice">
+							<button class="random-pokemon-btn random-pokemon-primary" type="button" id="randomPokemonBtn"><img src="img/pokebola-audio-player.svg" class="pokedex-btn-ball-icon" alt="" aria-hidden="true" /><span class="pokedex-btn-label">Escolha um Pokémon para mim</span></button>
+							<button class="search-options-toggle" type="button" id="showSearchOptions" aria-expanded="false" aria-controls="searchOptions"><span class="pokedex-btn-icon pokedex-btn-icon-mon" aria-hidden="true"></span><span class="pokedex-btn-label">Prefiro buscar ou usar filtros</span></button>
+						</div>
 					</div>
 				</div>
 				<div class="pokedex-search-panel">
-					<label class="pokedex-search-label" for="searchInput">Pesquisar na Pokédex</label>
-					<div class="search-autocomplete">
+					<div id="searchOptions" class="d-none">
+						<label class="pokedex-search-label" for="searchInput">Como você quer encontrar seu Pokémon?</label>
+						<p class="pokedex-choice-intro">Busque pelo nome ou número e use os filtros da Pokédex.</p>
+						<div class="search-autocomplete">
 						<div class="input-group">
 							<div class="search-input-shell">
 								<input
@@ -1217,10 +1242,10 @@
 									aria-controls="pokemonSuggestions"
 								/>
 							</div>
-							<button class="btn btn-danger" type="button" id="searchBtn">Pesquisar Pokémon</button>
+							<button class="btn btn-danger" type="button" id="searchBtn">🔎 Buscar Pokémon</button>
 							<button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" aria-label="Limpar busca" title="Limpar busca">Limpar</button>
 						</div>
-						<div class="pokedex-search-helper"><span>Digite pelo menos 2 letras para ver sugestões.</span><span>Use ↑ ↓ e Enter.</span><button class="random-pokemon-btn" type="button" id="randomPokemonBtn">Pokémon aleatório</button></div>
+						<div class="pokedex-search-helper"><span>Digite pelo menos 2 letras para ver sugestões.</span><span>Use ↑ ↓ e Enter.</span></div>
 						<div id="pokemonSuggestions" class="pokemon-suggestions d-none" role="listbox" aria-label="Sugestões de Pokémon"></div>
 						<div class="pokemon-filters row g-2 align-items-end">
 							<div class="col-12">
@@ -1268,6 +1293,7 @@
 							<div class="col-12 col-sm-2 d-grid">
 								<button class="btn btn-outline-secondary btn-sm" type="button" id="clearFiltersBtn">Limpar filtros</button>
 							</div>
+						</div>
 						</div>
 					</div>
 				</div>

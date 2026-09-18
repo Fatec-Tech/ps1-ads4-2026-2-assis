@@ -14,6 +14,8 @@ const categoryFilter = document.getElementById('categoryFilter');
 const sortFilter = document.getElementById('sortFilter');
 const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 const randomPokemonBtn = document.getElementById('randomPokemonBtn');
+const showSearchOptionsBtn = document.getElementById('showSearchOptions');
+const searchOptions = document.getElementById('searchOptions');
 const pokemonSuggestions = document.getElementById('pokemonSuggestions');
 const pokemonModalElement = document.getElementById('pokemonModal');
 const pokemonModalBody = document.getElementById('pokemonModalBody');
@@ -72,9 +74,10 @@ const pokemonTypeThemes = {
 
 // Função para buscar os detalhes individuais de um Pokémon
 async function fetchPokemonData(urlOrName) {
-	const url = urlOrName.startsWith('http')
-		? urlOrName
-		: `${API_URL}/${urlOrName.toLowerCase().trim()}`;
+	const pokemonReference = String(urlOrName).trim();
+	const url = pokemonReference.startsWith('http')
+		? pokemonReference
+		: `${API_URL}/${pokemonReference.toLowerCase()}`;
 
 	if (pokemonCache.has(url)) {
 		return pokemonCache.get(url);
@@ -809,17 +812,27 @@ document.querySelectorAll('[data-type-chip]').forEach((chip) => {
 		applyFilters();
 	});
 });
+const randomPokemonBtnLabel = randomPokemonBtn.querySelector('.pokedex-btn-label');
+const showSearchOptionsBtnLabel = showSearchOptionsBtn.querySelector('.pokedex-btn-label');
 randomPokemonBtn.addEventListener('click', async () => {
 	const maxPokemonId = filterCatalog?.length ? Math.max(...filterCatalog.map(({ id }) => id)) : 1025;
 	const randomId = Math.floor(Math.random() * maxPokemonId) + 1;
 	randomPokemonBtn.disabled = true;
-	randomPokemonBtn.textContent = '⟳ Explorando...';
+	randomPokemonBtnLabel.textContent = '⟳ Explorando...';
 	try {
 		await openPokemonModal(randomId);
 	} finally {
 		randomPokemonBtn.disabled = false;
-		randomPokemonBtn.textContent = '⚡ Pokémon aleatório';
+		randomPokemonBtnLabel.textContent = 'Escolha um Pokémon para mim';
 	}
+});
+showSearchOptionsBtn.addEventListener('click', () => {
+	const isHidden = searchOptions.classList.toggle('d-none');
+	showSearchOptionsBtn.setAttribute('aria-expanded', String(!isHidden));
+	showSearchOptionsBtnLabel.textContent = isHidden
+		? 'Prefiro buscar ou usar filtros'
+		: 'Ocultar busca e filtros';
+	if (!isHidden) searchInput.focus();
 });
 searchInput.addEventListener('input', updateSuggestions);
 searchInput.addEventListener('keydown', (event) => {
