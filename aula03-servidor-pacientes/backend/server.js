@@ -20,6 +20,12 @@ const pacientes = [
 		email: 'ana.costa@email.com',
 		nascimento: '2001-07-08',
 	},
+	{
+		id: 4,
+		nome: 'Carlos Souza',
+		email: 'carlos.souza@email.com',
+		nascimento: '1978-02-21',
+	},
 ];
 
 const servidor = http.createServer((req, res) => {
