@@ -33,6 +33,12 @@ const servidor = http.createServer((req, res) => {
 		return;
 	}
 
+	if (req.method === 'GET' && req.url === '/pacientes/total') {
+		res.writeHead(200);
+		res.end(JSON.stringify({ total: pacientes.length }));
+		return;
+	}
+
 	// Qualquer outra rota/método não tratado cai aqui
 	res.writeHead(404);
 	res.end(JSON.stringify({ erro: 'Rota não encontrada' }));
