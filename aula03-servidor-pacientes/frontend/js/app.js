@@ -46,8 +46,16 @@ async function carregarPacientesIniciais() {
 		renderizarTabela();
 	} catch (erro) {
 		console.error('Não foi possível carregar os pacientes:', erro);
-		mensagemCarregando.textContent =
-			'Erro ao carregar pacientes. O servidor está rodando?';
+		mensagemCarregando.style.display = 'none';
+
+		// Mostra o erro dentro da própria tabela, ocupando as 3 colunas
+		tabela.innerHTML = `
+      <tr>
+        <td colspan="3" class="text-center text-danger py-4">
+          Não foi possível carregar os pacientes. Verifique se o servidor está rodando e tente novamente.
+        </td>
+      </tr>
+    `;
 		return;
 	}
 
