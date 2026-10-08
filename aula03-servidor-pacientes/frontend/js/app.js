@@ -62,6 +62,23 @@ async function carregarPacientesIniciais() {
 	mensagemCarregando.style.display = 'none';
 }
 
+async function carregarTotalPacientes(){
+	try {
+     const resposta = await fetch(URL_API + "/total"); 
+
+	 	if (!resposta.ok) {
+			throw new Error(`Erro HTTP: ${resposta.status}`);
+		}
+
+		const dados = await resposta.json();
+
+		document.querySelector("#total").textContent = dados.total;
+	   
+	} catch(erro){
+
+	}
+}
+
 formulario.addEventListener('submit', (event) => {
 	event.preventDefault();
 
@@ -77,3 +94,4 @@ formulario.addEventListener('submit', (event) => {
 
 // Assim que o script carrega, já dispara a busca dos dados iniciais
 carregarPacientesIniciais();
+carregarTotalPacientes();
