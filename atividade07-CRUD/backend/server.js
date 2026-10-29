@@ -45,6 +45,19 @@ app.get('/pacientes/total', (req, res) => {
 	res.status(200).json({ total: pacientes.length });
 });
 
+app.get('/pacientes/:id', (req, res) => {
+	// O parâmetro chega como texto na URL, mas os IDs do array são números
+	const id = Number(req.params.id);
+	const paciente = pacientes.find((p) => p.id === id);
+
+	if (!paciente) {
+		res.status(404).json({ erro: 'Paciente não encontrado' });
+		return;
+	}
+
+	res.status(200).json(paciente);
+});
+
 // Qualquer outra rota/método não tratado cai aqui
 app.use((req, res) => {
 	res.status(404).json({ erro: 'Rota não encontrada' });
