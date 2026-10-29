@@ -20,6 +20,9 @@
     <div id="mensagem"></div>
 
     <form id="form-paciente" class="row g-3 mb-5">
+      <!-- Campo oculto: se tiver valor, estamos EDITANDO (PUT); se vazio, CADASTRANDO (POST) -->
+      <input type="hidden" id="id">
+
       <div class="col-md-4">
         <label for="nome" class="form-label">Nome</label>
         <input type="text" class="form-control" id="nome" required>
@@ -30,13 +33,14 @@
         <input type="email" class="form-control" id="email" required>
       </div>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label for="nascimento" class="form-label">Data de nascimento</label>
         <input type="date" class="form-control" id="nascimento" required>
       </div>
 
-      <div class="col-md-1 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary w-100">+</button>
+      <div class="col-md-2 d-flex align-items-end gap-2">
+        <button type="submit" id="btn-salvar" class="btn btn-primary">Salvar</button>
+        <button type="button" id="btn-cancelar" class="btn btn-outline-secondary d-none">Cancelar</button>
       </div>
     </form>
 
@@ -51,6 +55,7 @@
           <th>Nome</th>
           <th>E-mail</th>
           <th>Data de nascimento</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody id="tabela-pacientes"></tbody>

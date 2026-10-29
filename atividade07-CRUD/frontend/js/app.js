@@ -5,9 +5,12 @@ const tabela = document.getElementById('tabela-pacientes');
 const mensagem = document.getElementById('mensagem');
 const mensagemCarregando = document.getElementById('carregando');
 
+const campoId = document.getElementById('id');
 const campoNome = document.getElementById('nome');
 const campoEmail = document.getElementById('email');
 const campoNascimento = document.getElementById('nascimento');
+const botaoSalvar = document.getElementById('btn-salvar');
+const botaoCancelar = document.getElementById('btn-cancelar');
 
 function formatarData(dataISO) {
 	const [ano, mes, dia] = dataISO.split('-');
@@ -41,8 +44,38 @@ function renderizarTabela(pacientes) {
 		linha.appendChild(criarCelula(paciente.email));
 		linha.appendChild(criarCelula(formatarData(paciente.nascimento)));
 
+		const celulaAcoes = document.createElement('td');
+
+		const botaoEditar = document.createElement('button');
+		botaoEditar.type = 'button';
+		botaoEditar.textContent = 'Editar';
+		botaoEditar.className = 'btn btn-sm btn-outline-primary';
+		botaoEditar.addEventListener('click', () => iniciarEdicao(paciente));
+
+		celulaAcoes.appendChild(botaoEditar);
+		linha.appendChild(celulaAcoes);
+
 		tabela.appendChild(linha);
 	});
+}
+
+function iniciarEdicao(paciente) {
+	campoId.value = paciente.id;
+	campoNome.value = paciente.nome;
+	campoEmail.value = paciente.email;
+	campoNascimento.value = paciente.nascimento;
+
+	botaoSalvar.textContent = 'Atualizar';
+	botaoCancelar.classList.remove('d-none');
+	campoNome.focus();
+}
+
+// Volta o formulário ao modo de cadastro
+function limparFormulario() {
+	formulario.reset();
+	campoId.value = '';
+	botaoSalvar.textContent = 'Salvar';
+	botaoCancelar.classList.add('d-none');
 }
 
 // GET /pacientes — a tabela sempre reflete o que está no servidor
@@ -59,10 +92,10 @@ async function listarPacientes() {
 	} catch (erro) {
 		console.error('Não foi possível carregar os pacientes:', erro);
 
-		// Mostra o erro dentro da própria tabela, ocupando as 3 colunas
+		// Mostra o erro dentro da própria tabela, ocupando as 4 colunas
 		tabela.innerHTML = `
       <tr>
-        <td colspan="3" class="text-center text-danger py-4">
+        <td colspan="4" class="text-center text-danger py-4">
           Não foi possível carregar os pacientes. Verifique se o servidor está rodando e tente novamente.
         </td>
       </tr>
@@ -89,10 +122,13 @@ async function carregarTotalPacientes() {
 	}
 }
 
-// POST /pacientes
-async function cadastrarPaciente(dados) {
-	const resposta = await fetch(URL_API, {
-		method: 'POST',
+// POST /pacientes (cadastro) ou PUT /pacientes/:id (edição), conforme exista ou não um ID
+async function salvarPaciente(dados, id) {
+	const metodo = id ? 'PUT' : 'POST';
+	const url = id ? `${URL_API}/${id}` : URL_API;
+
+	const resposta = await fetch(url, {
+		method: metodo,
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(dados), // objeto JS → texto JSON
 	});
@@ -115,21 +151,26 @@ formulario.addEventListener('submit', async (event) => {
 		nascimento: campoNascimento.value,
 	};
 
+	const id = campoId.value;
+
 	try {
-		await cadastrarPaciente(dados);
-		mostrarMensagem('Paciente cadastrado com sucesso.', 'success');
-		formulario.reset();
+		await salvarPaciente(dados, id);
+		mostrarMensagem(id ? 'Paciente atualizado com sucesso.' : 'Paciente cadastrado com sucesso.', 'success');
+		limparFormulario();
 		await listarPacientes();
 		await carregarTotalPacientes();
 	} catch (erro) {
-		console.error('Não foi possível cadastrar o paciente:', erro);
+		console.error('Não foi possível salvar o paciente:', erro);
 
 		// O formulário não é limpo, para o usuário não perder o que digitou.
 		// TypeError indica falha de rede (servidor fora do ar), sem mensagem útil da API
-		const texto = erro instanceof TypeError ? 'Não foi possível cadastrar o paciente. O servidor está no ar?' : erro.message;
+		const texto = erro instanceof TypeError ? 'Não foi possível salvar o paciente. O servidor está no ar?' : erro.message;
 		mostrarMensagem(texto);
 	}
 });
+
+// Cancelar apenas limpa o formulário, sem enviar nada à API
+botaoCancelar.addEventListener('click', limparFormulario);
 
 // Assim que o script carrega, já dispara a busca dos dados iniciais
 listarPacientes();
