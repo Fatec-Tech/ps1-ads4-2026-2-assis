@@ -49,10 +49,17 @@ function renderizarTabela(pacientes) {
 		const botaoEditar = document.createElement('button');
 		botaoEditar.type = 'button';
 		botaoEditar.textContent = 'Editar';
-		botaoEditar.className = 'btn btn-sm btn-outline-primary';
+		botaoEditar.className = 'btn btn-sm btn-outline-primary me-2';
 		botaoEditar.addEventListener('click', () => iniciarEdicao(paciente));
 
+		const botaoExcluir = document.createElement('button');
+		botaoExcluir.type = 'button';
+		botaoExcluir.textContent = 'Excluir';
+		botaoExcluir.className = 'btn btn-sm btn-outline-danger';
+		botaoExcluir.addEventListener('click', () => excluirPaciente(paciente.id));
+
 		celulaAcoes.appendChild(botaoEditar);
+		celulaAcoes.appendChild(botaoExcluir);
 		linha.appendChild(celulaAcoes);
 
 		tabela.appendChild(linha);
@@ -140,6 +147,35 @@ async function salvarPaciente(dados, id) {
 	}
 
 	return resposta.json();
+}
+
+// DELETE /pacientes/:id
+async function excluirPaciente(id) {
+	// Se o usuário cancelar a confirmação, nenhuma requisição é enviada
+	if (!confirm('Deseja realmente excluir este paciente?')) {
+		return;
+	}
+
+	try {
+		const resposta = await fetch(`${URL_API}/${id}`, { method: 'DELETE' });
+
+		// A resposta de sucesso é 204, sem corpo: por isso não chamamos resposta.json()
+		if (!resposta.ok) {
+			throw new Error(`Erro HTTP: ${resposta.status}`);
+		}
+
+		// Se o paciente excluído estava em edição, o formulário volta ao modo de cadastro
+		if (campoId.value === String(id)) {
+			limparFormulario();
+		}
+
+		mostrarMensagem('Paciente excluído com sucesso.', 'success');
+		await listarPacientes();
+		await carregarTotalPacientes();
+	} catch (erro) {
+		console.error('Não foi possível excluir o paciente:', erro);
+		mostrarMensagem('Não foi possível excluir o paciente.');
+	}
 }
 
 formulario.addEventListener('submit', async (event) => {
