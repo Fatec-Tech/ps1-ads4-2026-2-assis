@@ -13,7 +13,7 @@ services:
   - type: web
     name: app-clinica-walysonassis
     runtime: static
-    buildCommand: echo "Sem build: arquivos estáticos"
+    buildCommand: 'echo "Sem build: arquivos estáticos"'
     staticPublishPath: ./atividade07-CRUD/frontend
     buildFilter:
       paths:
