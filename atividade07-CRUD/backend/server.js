@@ -76,6 +76,30 @@ app.post('/pacientes', (req, res) => {
 	res.status(201).json(paciente);
 });
 
+app.put('/pacientes/:id', (req, res) => {
+	const id = Number(req.params.id);
+	const paciente = pacientes.find((p) => p.id === id);
+
+	if (!paciente) {
+		res.status(404).json({ erro: 'Paciente não encontrado' });
+		return;
+	}
+
+	const { nome, email, nascimento } = req.body || {};
+
+	// Valida antes de alterar, para que uma atualização inválida mantenha os dados anteriores
+	if (!nome || !email || !nascimento) {
+		res.status(400).json({ erro: 'Os campos nome, email e nascimento são obrigatórios' });
+		return;
+	}
+
+	paciente.nome = nome;
+	paciente.email = email;
+	paciente.nascimento = nascimento;
+
+	res.status(200).json(paciente);
+});
+
 // Qualquer outra rota/método não tratado cai aqui
 app.use((req, res) => {
 	res.status(404).json({ erro: 'Rota não encontrada' });
