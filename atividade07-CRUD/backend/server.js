@@ -1,4 +1,12 @@
-const http = require('http');
+const express = require('express');
+const cors = require('cors');
+
+const app = express();
+
+// Libera o acesso para que o frontend, rodando em outra origem, possa consumir esta API
+app.use(cors());
+// Permite ler o corpo das requisições enviadas em JSON
+app.use(express.json());
 
 // Por enquanto, os dados ainda vivem em memória, dentro do próprio servidor
 const pacientes = [
@@ -28,30 +36,22 @@ const pacientes = [
 	},
 ];
 
-const servidor = http.createServer((req, res) => {
-	// Libera o acesso para que o frontend, rodando em outra porta, possa consumir esta API
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Content-Type', 'application/json');
-
-	if (req.method === 'GET' && req.url === '/pacientes') {
-		res.writeHead(200);
-		res.end(JSON.stringify(pacientes));
-		return;
-	}
-
-	if (req.method === 'GET' && req.url === '/pacientes/total') {
-		res.writeHead(200);
-		res.end(JSON.stringify({ total: pacientes.length }));
-		return;
-	}
-
-	// Qualquer outra rota/método não tratado cai aqui
-	res.writeHead(404);
-	res.end(JSON.stringify({ erro: 'Rota não encontrada' }));
+app.get('/pacientes', (req, res) => {
+	res.status(200).json(pacientes);
 });
 
-const PORTA = 3000;
+// Declarada antes de /pacientes/:id para que "total" não seja tratado como ID
+app.get('/pacientes/total', (req, res) => {
+	res.status(200).json({ total: pacientes.length });
+});
 
-servidor.listen(PORTA, () => {
+// Qualquer outra rota/método não tratado cai aqui
+app.use((req, res) => {
+	res.status(404).json({ erro: 'Rota não encontrada' });
+});
+
+const PORTA = process.env.PORT || 3000;
+
+app.listen(PORTA, () => {
 	console.log(`Servidor rodando em http://localhost:${PORTA}`);
 });
