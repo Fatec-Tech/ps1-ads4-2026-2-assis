@@ -1,4 +1,5 @@
-const URL_API = 'http://localhost:3000/pacientes';
+// Em produção (Render). Para testar localmente, troque por 'http://localhost:3000/pacientes'
+const URL_API = 'https://api-clinica-walysonassis.onrender.com/pacientes';
 
 const formulario = document.getElementById('form-paciente');
 const tabela = document.getElementById('tabela-pacientes');

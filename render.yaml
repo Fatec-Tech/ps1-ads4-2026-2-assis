@@ -1,0 +1,20 @@
+# Blueprint do Render para a atividade 07 (CRUD de pacientes)
+services:
+  # Backend: API Express
+  - type: web
+    name: api-clinica-walysonassis
+    runtime: node
+    plan: free
+    rootDir: atividade07-CRUD/backend
+    buildCommand: npm install
+    startCommand: npm start
+
+  # Frontend: arquivos estáticos (HTML, CSS e JS), sem etapa de build
+  - type: web
+    name: app-clinica-walysonassis
+    runtime: static
+    buildCommand: echo "Sem build: arquivos estáticos"
+    staticPublishPath: ./atividade07-CRUD/frontend
+    buildFilter:
+      paths:
+        - atividade07-CRUD/frontend/**
