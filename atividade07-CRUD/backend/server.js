@@ -100,6 +100,21 @@ app.put('/pacientes/:id', (req, res) => {
 	res.status(200).json(paciente);
 });
 
+app.delete('/pacientes/:id', (req, res) => {
+	const id = Number(req.params.id);
+	const indice = pacientes.findIndex((p) => p.id === id);
+
+	if (indice === -1) {
+		res.status(404).json({ erro: 'Paciente não encontrado' });
+		return;
+	}
+
+	pacientes.splice(indice, 1);
+
+	// 204 indica sucesso sem corpo de resposta
+	res.status(204).end();
+});
+
 // Qualquer outra rota/método não tratado cai aqui
 app.use((req, res) => {
 	res.status(404).json({ erro: 'Rota não encontrada' });
