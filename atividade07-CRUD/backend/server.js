@@ -36,6 +36,9 @@ const pacientes = [
 	},
 ];
 
+// Contador separado do tamanho do array, para não reaproveitar IDs após exclusões
+let proximoId = pacientes.length + 1;
+
 app.get('/pacientes', (req, res) => {
 	res.status(200).json(pacientes);
 });
@@ -56,6 +59,21 @@ app.get('/pacientes/:id', (req, res) => {
 	}
 
 	res.status(200).json(paciente);
+});
+
+app.post('/pacientes', (req, res) => {
+	// Sem corpo na requisição, o Express deixa req.body indefinido
+	const { nome, email, nascimento } = req.body || {};
+
+	if (!nome || !email || !nascimento) {
+		res.status(400).json({ erro: 'Os campos nome, email e nascimento são obrigatórios' });
+		return;
+	}
+
+	const paciente = { id: proximoId++, nome, email, nascimento };
+	pacientes.push(paciente);
+
+	res.status(201).json(paciente);
 });
 
 // Qualquer outra rota/método não tratado cai aqui
