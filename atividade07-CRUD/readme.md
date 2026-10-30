@@ -241,15 +241,15 @@ Todas as rotas foram testadas com `curl`, tanto **localmente** (`http://localhos
 
 Depois da entrega principal, foram feitos dois exercícios extras do PRD: o filtro por nome e o bloqueio de e-mail repetido.
 
-| # | Teste | Esperado | Local |
-|---|---|---|---|
-| 12 | `GET /pacientes?nome=ana` | `200` só com "Ana Costa" | ✅ 200, 1 paciente |
-| 13 | `GET /pacientes?nome=SILVA` (maiúsculas) | `200` só com "Maria Silva" | ✅ 200, 1 paciente |
-| 14 | `GET /pacientes?nome=xyz` (ninguém bate) | `200` com lista vazia `[]` | ✅ 200, `[]` |
-| 15 | `GET /pacientes` sem filtro | `200` com todos | ✅ 200, 4 pacientes |
-| 16 | `POST` com e-mail já cadastrado (`maria.silva@email.com`) | `409` | ✅ 409 |
-| 17 | `POST` com o mesmo e-mail em maiúsculas | `409` | ✅ 409 |
-| 18 | `POST` com e-mail novo | `201` | ✅ 201 |
+| # | Teste | Esperado | Local | Produção |
+|---|---|---|---|---|
+| 12 | `GET /pacientes?nome=ana` | `200` só com "Ana Costa" | ✅ 200, 1 paciente | ✅ 200, 1 paciente |
+| 13 | `GET /pacientes?nome=SILVA` (maiúsculas) | `200` só com "Maria Silva" | ✅ 200, 1 paciente | ✅ 200, 1 paciente |
+| 14 | `GET /pacientes?nome=xyz` (ninguém bate) | `200` com lista vazia `[]` | ✅ 200, `[]` | ✅ 200, `[]` |
+| 15 | `GET /pacientes` sem filtro | `200` com todos | ✅ 200, 4 pacientes | ✅ 200, 4 pacientes |
+| 16 | `POST` com e-mail já cadastrado (`maria.silva@email.com`) | `409` | ✅ 409 | ✅ 409 |
+| 17 | `POST` com o mesmo e-mail em maiúsculas | `409` | ✅ 409 | ✅ 409 |
+| 18 | `POST` com e-mail novo | `201` | ✅ 201 | ✅ 201 |
 
 **Por que `/pacientes/total` fica antes de `/pacientes/:id`?** O Express testa as rotas na ordem em que foram escritas. Se `/pacientes/:id` viesse primeiro, uma requisição para `/pacientes/total` cairia nela, com `id = "total"`. Como `Number("total")` vira `NaN`, nenhum paciente seria encontrado e a resposta seria `404`, em vez de `{ "total": N }`.
 
