@@ -40,7 +40,19 @@ const pacientes = [
 let proximoId = pacientes.length + 1;
 
 app.get('/pacientes', (req, res) => {
-	res.status(200).json(pacientes);
+	const { nome } = req.query;
+
+	// Sem ?nome= na URL, devolve a lista completa
+	if (!nome) {
+		res.status(200).json(pacientes);
+		return;
+	}
+
+	// Busca parcial e sem diferenciar maiúsculas/minúsculas: "ana" encontra "Ana Costa"
+	const termo = nome.toLowerCase();
+	const filtrados = pacientes.filter((p) => p.nome.toLowerCase().includes(termo));
+
+	res.status(200).json(filtrados);
 });
 
 // Declarada antes de /pacientes/:id para que "total" não seja tratado como ID
