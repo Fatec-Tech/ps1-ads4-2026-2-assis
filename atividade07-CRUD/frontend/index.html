@@ -3,65 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro de Pacientes</title>
-
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  >
+  <meta name="theme-color" content="#405947">
+  <title>Pacientes | Gestão Bem-Querer</title>
+  <link rel="icon" type="image/png" sizes="128x128" href="assets/imgs/favicon.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-  <div class="container py-5">
-    <h1 class="mb-4">Cadastro de Pacientes</h1>
-
-    <!-- Área para mensagens de sucesso/erro -->
-    <div id="mensagem"></div>
-
-    <form id="form-paciente" class="row g-3 mb-5">
-      <!-- Campo oculto: se tiver valor, estamos EDITANDO (PUT); se vazio, CADASTRANDO (POST) -->
-      <input type="hidden" id="id">
-
-      <div class="col-md-4">
-        <label for="nome" class="form-label">Nome</label>
-        <input type="text" class="form-control" id="nome" required>
-      </div>
-
-      <div class="col-md-4">
-        <label for="email" class="form-label">E-mail</label>
-        <input type="email" class="form-control" id="email" required>
-      </div>
-
-      <div class="col-md-2">
-        <label for="nascimento" class="form-label">Data de nascimento</label>
-        <input type="date" class="form-control" id="nascimento" required>
-      </div>
-
-      <div class="col-md-2 d-flex align-items-end gap-2">
-        <button type="submit" id="btn-salvar" class="btn btn-primary">Salvar</button>
-        <button type="button" id="btn-cancelar" class="btn btn-outline-secondary d-none">Cancelar</button>
-      </div>
-    </form>
-
-    <h2 class="h4 mb-3">Pacientes cadastrados <span>Total: <i id="total"></i></span></h2>
-
-    <!-- Mensagem de carregamento, visível enquanto os dados não chegam -->
-    <p id="carregando" class="text-muted">Carregando pacientes...</p>
-
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>E-mail</th>
-          <th>Data de nascimento</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tabela-pacientes"></tbody>
-    </table>
+  <a class="pular-conteudo" href="#conteudo">Ir para o conteúdo</a>
+  <aside class="sidebar" aria-label="Menu do sistema">
+    <a class="marca" href="#conteudo"><img src="assets/imgs/logo-clinica-bem-querer.webp" alt="Clínica Bem-Querer" width="640" height="240"></a>
+    <span class="sidebar-legenda">GESTÃO DA CLÍNICA</span>
+    <nav aria-label="Navegação principal">
+      <a href="#resumo"><span class="solar-icon solar-dashboard" aria-hidden="true"></span> Visão geral</a>
+      <a href="#pacientes" class="nav-ativo" aria-current="page"><span class="solar-icon solar-users" aria-hidden="true"></span> Pacientes <span class="nav-ponto" aria-hidden="true"></span></a>
+      <button type="button" data-novo-paciente><span class="solar-icon solar-add" aria-hidden="true"></span> Novo cadastro</button>
+    </nav>
+    <div class="sidebar-rodape" aria-label="Perfil do usuário">
+      <div class="perfil-avatar"><img src="assets/imgs/dr-rafael-mendes.webp" alt="Foto de perfil do Dr. Rafael Mendes" width="128" height="128"><span class="perfil-status" aria-hidden="true"></span></div>
+      <div class="perfil-info"><strong>Dr. Rafael Mendes</strong><span>Médico · Administrador</span><span class="perfil-sessao">Sessão ativa</span></div>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb-painel">Gestão clínica <span class="solar-icon solar-chevron" aria-hidden="true"></span> <strong>Pacientes</strong></div><span class="ambiente">Área administrativa</span></header>
+    <main id="conteudo">
+      <div class="cabecalho-pagina"><div><span class="sobretitulo">GESTÃO DE PACIENTES</span><h1>Pacientes</h1><p>Consulte e mantenha os cadastros da clínica em dia.</p></div><button class="btn btn-primary" type="button" data-novo-paciente><span class="solar-icon solar-add" aria-hidden="true"></span> Novo paciente</button></div>
+      <section class="resumo" id="resumo" aria-label="Resumo dos pacientes">
+        <article class="indicador"><div class="indicador-topo"><h2>Total de pacientes</h2><span class="indicador-icone verde" aria-hidden="true"><span class="solar-icon solar-users" aria-hidden="true"></span></span></div><strong id="total">—</strong><p>Cadastros na clínica</p></article>
+        <article class="indicador"><div class="indicador-topo"><h2>Pacientes adultos</h2><span class="indicador-icone areia" aria-hidden="true"><span class="solar-icon solar-user" aria-hidden="true"></span></span></div><strong id="total-adultos">—</strong><p>A partir de 18 anos</p></article>
+        <article class="indicador"><div class="indicador-topo"><h2>Crianças e adolescentes</h2><span class="indicador-icone pessego" aria-hidden="true"><span class="solar-icon solar-heart" aria-hidden="true"></span></span></div><strong id="total-menores">—</strong><p>Menores de 18 anos</p></article>
+      </section>
+      <section class="painel" id="pacientes" aria-labelledby="titulo-pacientes">
+        <div class="painel-cabecalho"><div><h2 id="titulo-pacientes">Lista de pacientes</h2><p>Informações de contato e dados cadastrais.</p></div><button id="btn-recarregar" class="btn btn-outline-secondary" type="button"><span class="solar-icon solar-refresh" aria-hidden="true"></span> Atualizar lista</button></div>
+        <form class="barra-filtros" id="form-busca" role="search" aria-label="Buscar pacientes por nome">
+          <div class="busca"><label for="busca-paciente" class="visually-hidden">Nome do paciente</label><span class="solar-icon solar-search" aria-hidden="true"></span><input type="search" id="busca-paciente" placeholder="Digite o nome do paciente" autocomplete="off"></div>
+          <button class="btn btn-primary" id="btn-buscar" type="submit"><span class="solar-icon solar-search" aria-hidden="true"></span> Buscar</button>
+          <button class="btn btn-outline-secondary" id="btn-limpar-busca" type="button"><span class="solar-icon solar-filter" aria-hidden="true"></span> Limpar filtro</button>
+          <span class="filtro-legenda" id="filtro-legenda">Todos os pacientes</span>
+        </form>
+        <span id="carregando" class="visually-hidden" role="status" aria-live="polite"></span>
+        <div class="table-responsive" role="region" aria-label="Lista de pacientes cadastrados" tabindex="0"><table class="table mb-0"><thead><tr><th scope="col">Paciente</th><th scope="col">E-mail</th><th scope="col">Nascimento</th><th scope="col">Ações</th></tr></thead><tbody id="tabela-pacientes"></tbody></table></div>
+        <div class="rodape-tabela"><span id="resultado-busca" aria-live="polite">Aguardando carregamento</span></div>
+      </section>
+      <footer class="rodape-painel">Criado por <a href="https://walysonassis.online/" target="_blank" rel="noopener noreferrer">Walyson</a></footer>
+    </main>
   </div>
-
+  <dialog id="dialog-cadastro" aria-labelledby="titulo-cadastro">
+    <div class="modal-cabecalho"><div><span class="sobretitulo">DADOS CADASTRAIS</span><h2 id="titulo-cadastro">Novo paciente</h2></div><button class="fechar-modal" id="btn-fechar-cadastro" type="button" aria-label="Fechar cadastro"><span class="solar-icon solar-close" aria-hidden="true"></span></button></div>
+    <p class="modal-descricao">Preencha os dados do paciente. Todos os campos são obrigatórios.</p>
+    <form id="form-paciente" novalidate>
+      <input type="hidden" id="id">
+      <div class="campo"><label for="nome" class="form-label">Nome completo</label><input type="text" class="form-control" id="nome" placeholder="Nome do paciente" autocomplete="name" required></div>
+      <div class="campo"><label for="email" class="form-label">E-mail</label><input type="email" class="form-control" id="email" placeholder="nome@exemplo.com" autocomplete="email" required></div>
+      <div class="campo"><label for="nascimento" class="form-label">Data de nascimento</label><input type="date" class="form-control" id="nascimento" autocomplete="bday" required></div>
+      <div class="formulario-acoes"><button type="button" id="btn-cancelar" class="btn btn-outline-secondary">Cancelar</button><button type="submit" id="btn-salvar" class="btn btn-primary"><span class="solar-icon solar-save" aria-hidden="true"></span> Salvar paciente</button></div>
+    </form>
+  </dialog>
+  <dialog id="dialog-status" class="modal-status" aria-labelledby="status-titulo" aria-describedby="status-descricao">
+    <div class="status-simbolo" aria-hidden="true"><span id="status-icone" class="solar-icon"></span></div>
+    <span id="status-categoria" class="sobretitulo"></span>
+    <h2 id="status-titulo"></h2>
+    <p id="status-descricao"></p>
+    <div class="status-acoes"><button id="status-cancelar" class="btn btn-outline-secondary" type="button">Cancelar</button><button id="status-confirmar" class="btn btn-primary" type="button" autofocus>Entendi</button></div>
+  </dialog>
   <script src="js/app.js"></script>
 </body>
 </html>
