@@ -70,6 +70,14 @@ app.post('/pacientes', (req, res) => {
 		return;
 	}
 
+	// E-mails são comparados sem diferenciar maiúsculas/minúsculas
+	const emailJaExiste = pacientes.some((p) => p.email.toLowerCase() === email.toLowerCase());
+
+	if (emailJaExiste) {
+		res.status(409).json({ erro: 'Já existe um paciente cadastrado com este e-mail' });
+		return;
+	}
+
 	const paciente = { id: proximoId++, nome, email, nascimento };
 	pacientes.push(paciente);
 
