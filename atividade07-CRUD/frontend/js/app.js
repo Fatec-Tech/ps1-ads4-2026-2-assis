@@ -394,5 +394,8 @@ buscaPaciente.addEventListener('input', () => {
 });
 botaoRecarregar.addEventListener('click', () => listarPacientes('atualizar'));
 
-// Assim que o script carrega, já dispara a busca dos dados iniciais
-listarPacientes();
+// Assim que o script carrega, já dispara a busca dos dados iniciais.
+// Na primeira visita da sessão, a abertura cobre o minuto em que o servidor do Render acorda.
+iniciarAbertura(listarPacientes('silencioso')).then((resultado) => {
+	if (!resultado.ok) mostrarStatus({ tipo: 'erro', titulo: 'Não foi possível carregar a lista', texto: textoErro(resultado.erro) });
+});
