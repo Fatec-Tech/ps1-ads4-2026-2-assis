@@ -53,10 +53,6 @@ atividade07-CRUD/
 │   ├── index.html       → a página com o formulário e a tabela
 │   ├── css/style.css    → estilos
 │   └── js/app.js        → conversa com a API (fetch) e monta a tabela
-├── docs/
-│   ├── OQUEPRECISASERFEITO.md → orientações de entrega do professor
-│   ├── PRD.md                 → documento com os requisitos da aula
-│   └── ISSUES.md              → as tarefas (issues) planejadas para a entrega
 └── readme.md            → este arquivo
 
 ../render.yaml           → configuração do deploy no Render (fica na raiz do repositório)
@@ -69,9 +65,10 @@ Endereço base: `/pacientes`. Todos os dados vão e voltam em JSON.
 | Método | Rota | O que faz | Sucesso | Erros possíveis |
 |---|---|---|---|---|
 | `GET` | `/pacientes` | Lista todos os pacientes | `200` | — |
+| `GET` | `/pacientes?nome=ana` | Lista só os pacientes cujo nome contém o texto (sem diferenciar maiúsculas/minúsculas) | `200` (lista vazia se ninguém bater) | — |
 | `GET` | `/pacientes/total` | Mostra quantos pacientes existem | `200` | — |
 | `GET` | `/pacientes/:id` | Busca um paciente pelo ID | `200` | `404` se não existir |
-| `POST` | `/pacientes` | Cadastra um paciente | `201` | `400` se faltar nome, email ou nascimento |
+| `POST` | `/pacientes` | Cadastra um paciente | `201` | `400` se faltar nome, email ou nascimento · `409` se o e-mail já estiver cadastrado |
 | `PUT` | `/pacientes/:id` | Atualiza um paciente | `200` | `404` se não existir · `400` se faltar campo |
 | `DELETE` | `/pacientes/:id` | Exclui um paciente | `204` (sem corpo) | `404` se não existir |
 
@@ -92,6 +89,7 @@ Exemplo de corpo para `POST` e `PUT`:
 - `204 No Content`: deu certo, mas não há nada para devolver (usado na exclusão).
 - `400 Bad Request`: a requisição veio com dados faltando.
 - `404 Not Found`: o paciente (ou a rota) não existe.
+- `409 Conflict`: já existe um paciente com o mesmo e-mail.
 
 ## Como rodar no seu computador
 
@@ -166,19 +164,6 @@ Detalhes importantes:
 - O frontend não tem etapa de build (é HTML, CSS e JS puros), então o `buildCommand` só imprime uma mensagem.
 - O backend usa `process.env.PORT || 3000`, porque o Render escolhe a porta e a informa por essa variável de ambiente.
 
-### Um problema que aconteceu (e como foi resolvido)
-
-No primeiro deploy, o Render recusou o Blueprint com o erro `mapping values are not allowed in this context`. A causa foi esta linha:
-
-```yaml
-buildCommand: echo "Sem build: arquivos estáticos"
-```
-
-No YAML, um texto sem aspas que tem `: ` (dois-pontos e espaço) no meio é lido como se fosse uma nova chave. A correção foi colocar o comando inteiro entre aspas simples:
-
-```yaml
-buildCommand: 'echo "Sem build: arquivos estáticos"'
-```
 
 ## Como o projeto foi feito (com ajuda do Claude)
 
@@ -186,7 +171,7 @@ Este projeto foi desenvolvido com o apoio do **Claude** (assistente de IA da Ant
 
 ### 1. Planejamento com issues
 
-A partir das [orientações do professor](docs/OQUEPRECISASERFEITO.md) e do [PRD](docs/PRD.md), o Claude ajudou a quebrar o trabalho em **10 issues** pequenas, cada uma com descrição e critérios de aceite. Elas estão em [docs/ISSUES.md](docs/ISSUES.md) e foram cadastradas no GitHub.
+A partir das orientações de entrega do professor e do documento de requisitos da aula (PRD), o Claude ajudou a quebrar o trabalho em **10 issues** pequenas, cada uma com descrição e critérios de aceite. Depois, essas issues foram cadastradas no GitHub.
 
 | Issue | Tarefa | Issue no GitHub |
 |---|---|---|
@@ -199,13 +184,20 @@ A partir das [orientações do professor](docs/OQUEPRECISASERFEITO.md) e do [PRD
 | I07 | Edição de pacientes no frontend | #15 |
 | I08 | Exclusão de pacientes no frontend | #16 |
 | I09 | Publicar backend e frontend no Render | #17 |
-| I10 | Validar a entrega e documentar (este README) | — |
+| I10 | Validar a entrega e documentar (este README) | #18 |
+| Extra | Impedir cadastro de e-mail duplicado (`409`) | #19 |
+| Extra | Filtrar pacientes por nome na listagem | #20 |
+
+As duas últimas são exercícios extras do PRD, feitos depois da entrega principal.
 
 ### 2. Commits organizados
 
 Cada issue virou **um commit**, seguindo o padrão *Conventional Commits* (`tipo(área): descrição #issue`). Assim o histórico conta a história do projeto passo a passo:
 
 ```
+0b5d264 feat(backend): filtrar pacientes por nome na listagem #20
+f0271a9 feat(backend): impedir cadastro de e-mail duplicado com status 409 #19
+3a3331a docs: documentar execução, testes e deploy da atividade 07
 b4d3a99 fix(deploy): corrigir YAML do buildCommand no render.yaml
 f247acd feat(deploy): configurar publicação no Render #17
 a255ee7 feat(frontend): implementar exclusão de pacientes #16
@@ -245,6 +237,22 @@ Todas as rotas foram testadas com `curl`, tanto **localmente** (`http://localhos
 | 10 | `PUT /pacientes/999` (não existe) | `404` | ✅ 404 | ✅ 404 |
 | 11 | `DELETE /pacientes/999` (não existe) | `404` | ✅ 404 | ✅ 404 |
 
+### Testes dos exercícios extras
+
+Depois da entrega principal, foram feitos dois exercícios extras do PRD: o filtro por nome e o bloqueio de e-mail repetido.
+
+| # | Teste | Esperado | Local |
+|---|---|---|---|
+| 12 | `GET /pacientes?nome=ana` | `200` só com "Ana Costa" | ✅ 200, 1 paciente |
+| 13 | `GET /pacientes?nome=SILVA` (maiúsculas) | `200` só com "Maria Silva" | ✅ 200, 1 paciente |
+| 14 | `GET /pacientes?nome=xyz` (ninguém bate) | `200` com lista vazia `[]` | ✅ 200, `[]` |
+| 15 | `GET /pacientes` sem filtro | `200` com todos | ✅ 200, 4 pacientes |
+| 16 | `POST` com e-mail já cadastrado (`maria.silva@email.com`) | `409` | ✅ 409 |
+| 17 | `POST` com o mesmo e-mail em maiúsculas | `409` | ✅ 409 |
+| 18 | `POST` com e-mail novo | `201` | ✅ 201 |
+
+**Por que `/pacientes/total` fica antes de `/pacientes/:id`?** O Express testa as rotas na ordem em que foram escritas. Se `/pacientes/:id` viesse primeiro, uma requisição para `/pacientes/total` cairia nela, com `id = "total"`. Como `Number("total")` vira `NaN`, nenhum paciente seria encontrado e a resposta seria `404`, em vez de `{ "total": N }`.
+
 Também foi conferido em produção que:
 
 - o site publicado carrega o HTML, o CSS e o JavaScript corretamente;
@@ -277,6 +285,13 @@ curl -i -X POST $BASE
 
 # Erro 404: paciente que não existe
 curl -i $BASE/999
+
+# Filtrar por nome
+curl "$BASE?nome=ana"
+
+# Erro 409: e-mail já cadastrado
+curl -i -X POST $BASE -H "Content-Type: application/json" \
+  -d '{"nome":"Outra Maria","email":"maria.silva@email.com","nascimento":"2000-01-01"}'
 ```
 
 ## Tecnologias usadas
