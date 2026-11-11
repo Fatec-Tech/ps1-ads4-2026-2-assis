@@ -1,5 +1,8 @@
-// Em produção (Render). Para testar localmente, troque por 'http://localhost:3000/pacientes'
-const URL_API = 'https://api-clinica-walysonassis.onrender.com/pacientes';
+// A API local também acessa o Supabase configurado no backend/.env.
+const ambienteLocal = location.protocol === 'file:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+const URL_API = ambienteLocal
+	? 'http://localhost:3000/pacientes'
+	: 'https://api-clinica-walysonassis.onrender.com/pacientes';
 
 const formulario = document.getElementById('form-paciente');
 const tabela = document.getElementById('tabela-pacientes');
@@ -8,6 +11,7 @@ const mensagemCarregando = document.getElementById('carregando');
 const campoId = document.getElementById('id');
 const campoNome = document.getElementById('nome');
 const campoEmail = document.getElementById('email');
+const campoTelefone = document.getElementById('telefone');
 const campoNascimento = document.getElementById('nascimento');
 const botaoSalvar = document.getElementById('btn-salvar');
 const botaoCancelar = document.getElementById('btn-cancelar');
@@ -51,7 +55,9 @@ function definirCarregamento(ativo, atualizarIndicadores = true) {
 		linha.innerHTML = `
 			<td><div class="skeleton-paciente"><span class="skeleton skeleton-avatar"></span><span class="skeleton skeleton-nome"></span></div></td>
 			<td><span class="skeleton skeleton-email"></span></td>
+			<td><span class="skeleton skeleton-telefone"></span></td>
 			<td><span class="skeleton skeleton-data"></span></td>
+			<td><span class="skeleton skeleton-cadastro"></span></td>
 			<td><div class="skeleton-acoes"><span class="skeleton skeleton-botao"></span><span class="skeleton skeleton-botao"></span></div></td>`;
 		fragmento.appendChild(linha);
 	}
@@ -83,6 +89,13 @@ function atualizarResumo() {
 function formatarData(dataISO) {
 	const [ano, mes, dia] = dataISO.split('-');
 	return `${dia}/${mes}/${ano}`;
+}
+
+function formatarCadastro(valor) {
+	if (!valor) return '—';
+	const data = new Date(valor);
+	if (Number.isNaN(data.getTime())) return '—';
+	return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(data);
 }
 
 const dialogStatus = document.getElementById('dialog-status');
@@ -135,7 +148,7 @@ async function criarErroResposta(resposta) {
 		404: 'Este paciente não foi encontrado. Atualize a lista e tente novamente.',
 		409: 'Este e-mail já está cadastrado. Informe outro e-mail.'
 	};
-	return new Error(mensagens[resposta.status] || dados.erro || 'O servidor não conseguiu concluir a operação. Tente novamente.');
+	return new Error(dados.erro || mensagens[resposta.status] || 'O servidor não conseguiu concluir a operação. Tente novamente.');
 }
 
 function textoErro(erro) {
@@ -156,7 +169,7 @@ function renderizarTabela(pacientes) {
 		const celula = criarCelula(nomeFiltrado
 			? 'Nenhum paciente encontrado para esta busca.'
 			: 'Nenhum paciente cadastrado. Clique em Novo paciente para começar.');
-		celula.colSpan = 4;
+		celula.colSpan = 6;
 		celula.className = 'text-center py-5';
 		linha.appendChild(celula);
 		tabela.appendChild(linha);
@@ -171,7 +184,13 @@ function renderizarTabela(pacientes) {
 
 		linha.appendChild(criarCelula(paciente.nome));
 		linha.appendChild(criarCelula(paciente.email));
+		const celulaTelefone = criarCelula(paciente.telefone || 'Não informado');
+		celulaTelefone.className = 'celula-telefone';
+		linha.appendChild(celulaTelefone);
 		linha.appendChild(criarCelula(formatarData(paciente.nascimento)));
+		const celulaCadastro = criarCelula(formatarCadastro(paciente.criado_em));
+		celulaCadastro.className = 'celula-cadastro';
+		linha.appendChild(celulaCadastro);
 
 		const celulaAcoes = document.createElement('td');
 
@@ -199,6 +218,7 @@ function iniciarEdicao(paciente) {
 	campoId.value = paciente.id;
 	campoNome.value = paciente.nome;
 	campoEmail.value = paciente.email;
+	campoTelefone.value = paciente.telefone || '';
 	campoNascimento.value = paciente.nascimento;
 
 	definirBotaoComIcone(botaoSalvar, 'Atualizar', 'save');
@@ -253,10 +273,10 @@ async function listarPacientes(acao = '') {
 		resultado = { ok: false, erro };
 		console.error('Não foi possível carregar os pacientes:', erro);
 
-		// Mostra o erro dentro da própria tabela, ocupando as 4 colunas
+		// Mostra o erro dentro da própria tabela, ocupando as 6 colunas.
 		tabela.innerHTML = `
       <tr>
-        <td colspan="4" class="text-center text-danger py-4">
+        <td colspan="6" class="text-center text-danger py-4">
           Não foi possível carregar os pacientes. Verifique se o servidor está rodando e tente novamente.
         </td>
       </tr>
@@ -321,8 +341,10 @@ formulario.addEventListener('submit', async (event) => {
 	event.preventDefault();
 	if (!formulario.checkValidity()) {
 		const invalido = formulario.querySelector(':invalid');
-		await mostrarStatus({ tipo: 'erro', titulo: 'Revise os dados do paciente', texto: invalido.validity.valueMissing
-			? 'Preencha todos os campos obrigatórios antes de salvar.' : 'Informe um e-mail válido para continuar.' });
+		const mensagem = invalido.validity.valueMissing
+			? 'Preencha todos os campos obrigatórios antes de salvar.'
+			: invalido === campoTelefone ? 'Informe um telefone com até 20 caracteres.' : 'Informe um e-mail válido para continuar.';
+		await mostrarStatus({ tipo: 'erro', titulo: 'Revise os dados do paciente', texto: mensagem });
 		invalido.focus();
 		return;
 	}
@@ -330,6 +352,7 @@ formulario.addEventListener('submit', async (event) => {
 	const dados = {
 		nome: campoNome.value,
 		email: campoEmail.value,
+		telefone: campoTelefone.value.trim() || null,
 		nascimento: campoNascimento.value,
 	};
 

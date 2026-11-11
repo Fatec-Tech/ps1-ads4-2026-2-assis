@@ -2,7 +2,7 @@
 
 Sistema de cadastro de pacientes onde dá para **criar, listar, editar e excluir** pacientes pelo navegador. Ele tem duas partes:
 
-- **Backend (API):** um servidor Node.js com Express que guarda e devolve os dados dos pacientes.
+- **Backend (API):** um servidor Node.js com Express que guarda e consulta os pacientes no PostgreSQL do Supabase.
 - **Frontend (site):** uma página HTML que conversa com a API e mostra os pacientes numa tabela.
 
 As duas partes estão publicadas na internet, no Render.
@@ -33,13 +33,13 @@ CRUD são as quatro operações básicas de qualquer cadastro:
   Navegador (site)                         Servidor (API)
  ┌──────────────────┐   fetch (JSON)     ┌──────────────────────┐
  │ index.html       │ ─────────────────► │ Express (server.js)  │
- │ app.js           │ ◄───────────────── │ array de pacientes   │
+ │ app.js           │ ◄───────────────── │ PostgreSQL / Supabase │
  └──────────────────┘   resposta JSON    └──────────────────────┘
 ```
 
 1. A pessoa preenche o formulário ou clica em **Editar** / **Excluir**.
 2. O `app.js` envia uma requisição para a API usando `fetch`.
-3. A API faz a operação no array de pacientes e responde com JSON e um **código de status** (200, 201, 204, 400 ou 404).
+3. A API executa uma consulta SQL parametrizada no Supabase e responde com JSON e um **código de status**.
 4. O site atualiza a tabela e o total de pacientes.
 
 ## Estrutura de pastas
@@ -48,7 +48,10 @@ CRUD são as quatro operações básicas de qualquer cadastro:
 atividade07-CRUD/
 ├── backend/
 │   ├── server.js        → a API (todas as rotas do CRUD)
-│   └── package.json     → dependências (express e cors) e o comando "npm start"
+│   ├── banco.js         → pool de conexões PostgreSQL e tratamento de datas
+│   ├── .env.example     → modelo sem senha para a configuração local
+│   ├── scripts/         → schema inicial, migrações ALTER TABLE e reset
+│   └── package.json     → dependências (express, cors e pg) e comandos npm
 ├── frontend/
 │   ├── index.html       → a página com o formulário e a tabela
 │   ├── css/style.css    → estilos
@@ -67,10 +70,10 @@ Endereço base: `/pacientes`. Todos os dados vão e voltam em JSON.
 | `GET` | `/pacientes` | Lista todos os pacientes | `200` | — |
 | `GET` | `/pacientes?nome=ana` | Lista só os pacientes cujo nome contém o texto (sem diferenciar maiúsculas/minúsculas) | `200` (lista vazia se ninguém bater) | — |
 | `GET` | `/pacientes/total` | Mostra quantos pacientes existem | `200` | — |
-| `GET` | `/pacientes/:id` | Busca um paciente pelo ID | `200` | `404` se não existir |
-| `POST` | `/pacientes` | Cadastra um paciente | `201` | `400` se faltar nome, email ou nascimento · `409` se o e-mail já estiver cadastrado |
-| `PUT` | `/pacientes/:id` | Atualiza um paciente | `200` | `404` se não existir · `400` se faltar campo |
-| `DELETE` | `/pacientes/:id` | Exclui um paciente | `204` (sem corpo) | `404` se não existir |
+| `GET` | `/pacientes/:id` | Busca um paciente pelo ID | `200` | `400` se o ID for inválido · `404` se não existir |
+| `POST` | `/pacientes` | Cadastra um paciente | `201` | `400` se faltar nome, email ou nascimento ou o telefone for inválido · `409` se o e-mail já estiver cadastrado |
+| `PUT` | `/pacientes/:id` | Atualiza um paciente | `200` | `404` se não existir · `400` se os dados forem inválidos · `409` se o e-mail já estiver cadastrado |
+| `DELETE` | `/pacientes/:id` | Exclui um paciente | `204` (sem corpo) | `400` se o ID for inválido · `404` se não existir |
 
 Exemplo de corpo para `POST` e `PUT`:
 
@@ -78,9 +81,14 @@ Exemplo de corpo para `POST` e `PUT`:
 {
   "nome": "Paciente Exemplo",
   "email": "exemplo@email.com",
-  "nascimento": "2000-01-01"
+  "nascimento": "2000-01-01",
+  "telefone": "(11) 99999-9999"
 }
 ```
+
+O telefone é opcional: aceita texto com até 20 caracteres. Sem valor, ele é salvo como `NULL` e aparece como **Não informado** no site. Ao editar, envie o telefone atual para mantê-lo ou `null` para removê-lo. O `PUT` substitui os dados cadastrais enviados.
+
+As respostas de cadastro, edição e consulta também incluem `id` e `criado_em`. A data de cadastro é gerada pelo banco e não é alterada na edição. Na tabela do site, ela aparece na coluna **Cadastrado em**, no horário do navegador. O nascimento continua como texto `AAAA-MM-DD`.
 
 **O que cada código de status significa:**
 
@@ -93,43 +101,53 @@ Exemplo de corpo para `POST` e `PUT`:
 
 ## Como rodar no seu computador
 
-Pré-requisito: ter o [Node.js](https://nodejs.org) instalado (versão 18 ou mais nova).
+Pré-requisito: ter o [Node.js](https://nodejs.org) instalado (versão 22 ou mais nova). O banco continua no Supabase; não é necessário instalar PostgreSQL local.
 
-**1. Inicie o backend**
+**1. Configure e inicie o backend**
 
 ```bash
 cd atividade07-CRUD/backend
-npm install      # baixa o express e o cors
-npm start        # inicia a API em http://localhost:3000
+npm install
+cp -n .env.example .env
 ```
 
-**2. Aponte o frontend para a API local**
+Preencha `.env` com `DATABASE_URL` do Session pooler do seu Supabase (incluindo a senha) e `DB_SSL=true`. Não substitua um `.env` já configurado. O arquivo é ignorado pelo Git.
 
-Abra `frontend/js/app.js` e troque a primeira linha de código:
-
-```js
-// Em produção (já vem assim):
-const URL_API = 'https://api-clinica-walysonassis.onrender.com/pacientes';
-
-// Para testar localmente, use:
-const URL_API = 'http://localhost:3000/pacientes';
+```bash
+npm run db:setup    # cria a tabela base e insere os três pacientes iniciais
+npm run db:migrate  # adiciona telefone e criado_em com ALTER TABLE
+npm run dev         # inicia a API em http://localhost:3000 com recarga automática
 ```
 
-**3. Abra o site**
+**2. Abra o site**
 
 Abra o arquivo `frontend/index.html` no navegador (ou use a extensão Live Server do VS Code).
 
-> Lembre de voltar a `URL_API` para o endereço do Render antes de fazer commit, senão o site publicado vai tentar acessar o seu computador.
+O frontend seleciona a API automaticamente: em `localhost`, `127.0.0.1`, IPv6 local ou arquivo aberto diretamente, usa `http://localhost:3000/pacientes`; no site publicado, usa a API do Render. Ambas usam o banco configurado no backend correspondente.
 
-## Os dados ficam em memória
+## Persistência e migrações da Aula 09
 
-Os pacientes ficam guardados num **array dentro do `server.js`**, e não num banco de dados. Na prática:
+Os pacientes ficam no PostgreSQL do Supabase e continuam disponíveis após reiniciar a API. Não existe mais array de pacientes no servidor.
 
-- Tudo o que você cadastrar, editar ou excluir **some quando o servidor reinicia**.
-- No Render isso acontece com frequência, porque o serviço gratuito dorme quando fica parado e também reinicia a cada novo deploy.
-- Depois de reiniciar, a lista volta a ter os 4 pacientes iniciais.
+O `schema.sql` mantém a estrutura original da aula. As novas colunas são adicionadas apenas pelos scripts `ALTER TABLE`:
 
-Essa limitação é proposital nesta etapa. Na próxima aula o array será trocado por um banco PostgreSQL.
+- `adicionar-telefone.sql`: adiciona `telefone VARCHAR(20)`, opcional para preservar os registros existentes.
+- `adicionar-criado-em.sql`: adiciona `criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()`. O fuso acompanha o instante do cadastro; nos registros anteriores à migração, o valor indica o momento em que ela foi aplicada, pois a data histórica não era armazenada.
+- `npm run db:migrate`: aplica as duas alterações em uma transação. Os scripts usam `IF NOT EXISTS` e podem ser reaplicados.
+
+`CREATE TABLE IF NOT EXISTS` não altera uma tabela existente. Cada banco independente precisa receber as mesmas migrações. Quando a API local e a do Render usam a mesma `DATABASE_URL`, a alteração no Supabase atende às duas.
+
+O banco impede e-mails idênticos pela restrição `UNIQUE` da coluna `email`. O PostgreSQL devolve o código `23505`, que a API traduz para `409 Conflict`. A restrição atual é sensível a maiúsculas e minúsculas. A busca por nome usa `ILIKE $1` com `%termo%`, e o total usa `COUNT(*)`, mantendo `/pacientes/total` antes da rota por ID.
+
+### Reset dos dados de teste
+
+O comando abaixo apaga a tabela `pacientes` do banco apontado pelo `.env`, recria os três pacientes iniciais e reaplica as migrações. Use somente quando quiser descartar os cadastros desse banco:
+
+```bash
+npm run db:reset -- --confirmar
+```
+
+Sem `--confirmar`, o script recusa a execução antes de conectar ao banco. O reset usa uma transação para evitar uma tabela parcialmente recriada se ocorrer erro. Ele não é necessário para instalar as novas colunas.
 
 > **Use apenas dados fictícios.** Este é um projeto de estudo, então nunca cadastre nomes, e-mails ou datas de pessoas reais.
 
@@ -163,6 +181,7 @@ Detalhes importantes:
 - `buildFilter`: o site só é publicado de novo quando algo muda dentro de `frontend/`, e não a cada alteração em outras aulas.
 - O frontend não tem etapa de build (é HTML, CSS e JS puros), então o `buildCommand` só imprime uma mensagem.
 - O backend usa `process.env.PORT || 3000`, porque o Render escolhe a porta e a informa por essa variável de ambiente.
+- Configure `DATABASE_URL` e `DB_SSL=true` no serviço da API. Aplique `db:migrate` nesse banco antes de publicar o backend que consulta as novas colunas; a configuração de produção não vem do `.env` local.
 
 
 ## Como o projeto foi feito (com ajuda do Claude)
@@ -221,7 +240,28 @@ O deploy foi feito com o **plugin oficial do Render para o Claude Code**. O plug
 
 ## Testes realizados
 
-Todas as rotas foram testadas com `curl`, tanto **localmente** (`http://localhost:3000`) quanto **em produção** (Render), em 29/10/2026. Os testes usaram um paciente fictício, que foi criado, editado e excluído em seguida.
+### Validação da Aula 09 com Supabase
+
+As alterações de telefone e data de cadastro foram testadas na API local conectada ao Supabase e na interface pelo Chrome, com larguras de 1440 px e 390 px. Esta validação ainda não confirma o deploy dessas alterações no Render.
+
+| Cenário | Resultado |
+|---|---|
+| Reaplicar `db:migrate` | Colunas existentes preservadas, sem erro |
+| Cadastrar com telefone ou sem telefone | `201`; telefone salvo como texto ou `NULL` |
+| Enviar telefone numérico, objeto, lista ou texto com mais de 20 caracteres | `400`, no cadastro e na edição |
+| Cadastrar e-mail idêntico ao existente | `409`, sem novo cadastro |
+| Editar e remover telefone | `200`, com persistência confirmada na consulta |
+| Enviar uma data de cadastro pelo cliente | Valor ignorado; o banco gera `criado_em` e a edição o preserva |
+| Reiniciar a API local | Paciente, telefone e data de cadastro permanecem no Supabase |
+| Cadastrar, editar, recarregar e excluir pela interface | Fluxo concluído, inclusive no celular |
+| Buscar sem resultados e simular falha de carregamento | Mensagens ocupam as seis colunas da tabela |
+| Executar reset sem `--confirmar` | Bloqueado, sem alteração nos dados |
+
+Os registros temporários foram removidos ao final. O reset com confirmação não foi executado no banco compartilhado do Supabase.
+
+### Histórico anterior à persistência
+
+Os registros abaixo documentam os testes da versão anterior, com dados em memória, realizados em 29/10/2026. Eles não representam a validação em produção das alterações da Aula 09. Os testes usaram um paciente fictício, que foi criado, editado e excluído em seguida.
 
 | # | Teste | Esperado | Local | Produção |
 |---|---|---|---|---|
@@ -298,6 +338,7 @@ curl -i -X POST $BASE -H "Content-Type: application/json" \
 
 - **Node.js** + **Express 5**: servidor e rotas da API.
 - **cors**: deixa o site (em outro endereço) acessar a API.
+- **pg** + **PostgreSQL/Supabase**: conexão, consultas parametrizadas e persistência dos pacientes.
 - **HTML, CSS, JavaScript** + **Bootstrap 5**: interface do site.
 - **Fetch API**: comunicação do site com a API.
 - **Render**: hospedagem gratuita do backend e do frontend.

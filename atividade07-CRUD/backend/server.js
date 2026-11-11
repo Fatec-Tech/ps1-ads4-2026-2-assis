@@ -3,7 +3,7 @@ const cors = require('cors');
 const pool = require('./banco');
 
 const app = express();
-const COLUNAS = 'id, nome, email, nascimento';
+const COLUNAS = 'id, nome, email, nascimento, telefone, criado_em';
 
 // Libera o acesso para que o frontend, rodando em outra origem, possa consumir esta API
 app.use(cors());
@@ -12,6 +12,10 @@ app.use(express.json());
 
 function idValido(id) {
 	return Number.isInteger(id) && id > 0;
+}
+
+function telefoneValido(telefone) {
+	return telefone == null || (typeof telefone === 'string' && telefone.trim().length <= 20);
 }
 
 app.get('/pacientes', async (req, res) => {
@@ -73,20 +77,24 @@ app.get('/pacientes/:id', async (req, res) => {
 
 app.post('/pacientes', async (req, res) => {
 	// Sem corpo na requisição, o Express deixa req.body indefinido
-	const { nome, email, nascimento } = req.body || {};
+	const { nome, email, nascimento, telefone } = req.body || {};
 
 	if (!nome || !email || !nascimento) {
 		res.status(400).json({ erro: 'Os campos nome, email e nascimento são obrigatórios' });
 		return;
 	}
 
+	if (!telefoneValido(telefone)) {
+		return res.status(400).json({ erro: 'O telefone deve ser um texto com até 20 caracteres' });
+	}
+
 	try {
 		// O banco gera o ID e devolve o paciente salvo com RETURNING.
 		const resultado = await pool.query(
-			`INSERT INTO pacientes (nome, email, nascimento)
-			 VALUES ($1, $2, $3)
+			`INSERT INTO pacientes (nome, email, nascimento, telefone)
+			 VALUES ($1, $2, $3, $4)
 			 RETURNING ${COLUNAS}`,
-			[nome, email, nascimento]
+			[nome, email, nascimento, telefone?.trim() || null]
 		);
 
 		res.status(201).json(resultado.rows[0]);
@@ -109,7 +117,7 @@ app.put('/pacientes/:id', async (req, res) => {
 		return res.status(400).json({ erro: 'ID inválido' });
 	}
 
-	const { nome, email, nascimento } = req.body || {};
+	const { nome, email, nascimento, telefone } = req.body || {};
 
 	// Valida antes de alterar, para que uma atualização inválida mantenha os dados anteriores
 	if (!nome || !email || !nascimento) {
@@ -117,14 +125,18 @@ app.put('/pacientes/:id', async (req, res) => {
 		return;
 	}
 
+	if (!telefoneValido(telefone)) {
+		return res.status(400).json({ erro: 'O telefone deve ser um texto com até 20 caracteres' });
+	}
+
 	try {
 		// Os valores e o ID são enviados como parâmetros, separados do SQL.
 		const resultado = await pool.query(
 			`UPDATE pacientes
-			 SET nome = $1, email = $2, nascimento = $3
-			 WHERE id = $4
+			 SET nome = $1, email = $2, nascimento = $3, telefone = $4
+			 WHERE id = $5
 			 RETURNING ${COLUNAS}`,
-			[nome, email, nascimento, id]
+			[nome, email, nascimento, telefone?.trim() || null, id]
 		);
 
 		if (resultado.rowCount === 0) {

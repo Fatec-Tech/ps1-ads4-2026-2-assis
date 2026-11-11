@@ -90,7 +90,7 @@
           <span class="filtro-legenda" id="filtro-legenda">Todos os pacientes</span>
         </form>
         <span id="carregando" class="visually-hidden" role="status" aria-live="polite"></span>
-        <div class="table-responsive" role="region" aria-label="Lista de pacientes cadastrados" tabindex="0"><table class="table mb-0"><thead><tr><th scope="col">Paciente</th><th scope="col">E-mail</th><th scope="col">Nascimento</th><th scope="col">Ações</th></tr></thead><tbody id="tabela-pacientes"></tbody></table></div>
+        <div class="table-responsive" role="region" aria-label="Lista de pacientes cadastrados" tabindex="0"><table class="table mb-0"><thead><tr><th scope="col">Paciente</th><th scope="col">E-mail</th><th scope="col">Telefone</th><th scope="col">Nascimento</th><th scope="col">Cadastrado em</th><th scope="col">Ações</th></tr></thead><tbody id="tabela-pacientes"></tbody></table></div>
         <div class="rodape-tabela"><span id="resultado-busca" aria-live="polite">Aguardando carregamento</span></div>
       </section>
       <footer class="rodape-painel">Criado por <a href="https://walysonassis.online/" target="_blank" rel="noopener noreferrer">Walyson</a></footer>
@@ -98,11 +98,12 @@
   </div>
   <dialog id="dialog-cadastro" aria-labelledby="titulo-cadastro">
     <div class="modal-cabecalho"><div><span class="sobretitulo">DADOS CADASTRAIS</span><h2 id="titulo-cadastro">Novo paciente</h2></div><button class="fechar-modal" id="btn-fechar-cadastro" type="button" aria-label="Fechar cadastro"><span class="solar-icon solar-close" aria-hidden="true"></span></button></div>
-    <p class="modal-descricao">Preencha os dados do paciente. Todos os campos são obrigatórios.</p>
+    <p class="modal-descricao">Preencha nome, e-mail e data de nascimento. O telefone é opcional.</p>
     <form id="form-paciente" novalidate>
       <input type="hidden" id="id">
       <div class="campo"><label for="nome" class="form-label">Nome completo</label><input type="text" class="form-control" id="nome" placeholder="Nome do paciente" autocomplete="name" required></div>
       <div class="campo"><label for="email" class="form-label">E-mail</label><input type="email" class="form-control" id="email" placeholder="nome@exemplo.com" autocomplete="email" required></div>
+      <div class="campo"><label for="telefone" class="form-label">Telefone <span class="campo-opcional">(opcional)</span></label><input type="tel" class="form-control" id="telefone" placeholder="(11) 99999-9999" autocomplete="tel" maxlength="20"></div>
       <div class="campo"><label for="nascimento" class="form-label">Data de nascimento</label><input type="date" class="form-control" id="nascimento" autocomplete="bday" required></div>
       <div class="formulario-acoes"><button type="button" id="btn-cancelar" class="btn btn-outline-secondary">Cancelar</button><button type="submit" id="btn-salvar" class="btn btn-primary"><span class="solar-icon solar-save" aria-hidden="true"></span> Salvar paciente</button></div>
     </form>

@@ -6,7 +6,10 @@
 	"scripts": {
 		"start": "node --env-file-if-exists=.env server.js",
 		"dev": "node --watch --env-file=.env server.js",
-		"db:setup": "node --env-file=.env scripts/criar-tabela.js"
+		"db:setup": "node --env-file=.env scripts/criar-tabela.js",
+		"db:telefone": "node --env-file=.env scripts/adicionar-telefone.js",
+		"db:migrate": "node --env-file=.env scripts/migrar.js",
+		"db:reset": "node --env-file=.env scripts/resetar.js"
 	},
 	"dependencies": {
 		"cors": "^2.8.6",
