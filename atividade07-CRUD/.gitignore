@@ -1,1 +1,6 @@
 /docs
+
+# Credenciais e variáveis de ambiente locais
+.env
+.env.*
+!.env.example

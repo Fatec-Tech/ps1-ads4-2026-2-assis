@@ -1,79 +1,77 @@
 const express = require('express');
 const cors = require('cors');
+const pool = require('./banco');
 
 const app = express();
+const COLUNAS = 'id, nome, email, nascimento';
 
 // Libera o acesso para que o frontend, rodando em outra origem, possa consumir esta API
 app.use(cors());
 // Permite ler o corpo das requisições enviadas em JSON
 app.use(express.json());
 
-// Por enquanto, os dados ainda vivem em memória, dentro do próprio servidor
-const pacientes = [
-	{
-		id: 1,
-		nome: 'Maria Silva',
-		email: 'maria.silva@email.com',
-		nascimento: '1990-04-12',
-	},
-	{
-		id: 2,
-		nome: 'João Pereira',
-		email: 'joao.pereira@email.com',
-		nascimento: '1985-11-30',
-	},
-	{
-		id: 3,
-		nome: 'Ana Costa',
-		email: 'ana.costa@email.com',
-		nascimento: '2001-07-08',
-	},
-	{
-		id: 4,
-		nome: 'Carlos Souza',
-		email: 'carlos.souza@email.com',
-		nascimento: '1978-02-21',
-	},
-];
+function idValido(id) {
+	return Number.isInteger(id) && id > 0;
+}
 
-// Contador separado do tamanho do array, para não reaproveitar IDs após exclusões
-let proximoId = pacientes.length + 1;
-
-app.get('/pacientes', (req, res) => {
+app.get('/pacientes', async (req, res) => {
 	const { nome } = req.query;
 
-	// Sem ?nome= na URL, devolve a lista completa
-	if (!nome) {
-		res.status(200).json(pacientes);
-		return;
+	try {
+		// Sem ?nome= na URL, consulta todos os pacientes no banco.
+		// ILIKE mantém a busca parcial sem diferenciar maiúsculas de minúsculas.
+		const resultado = nome
+			? await pool.query(
+					`SELECT ${COLUNAS} FROM pacientes WHERE nome ILIKE $1 ORDER BY id`,
+					[`%${nome}%`]
+				)
+			: await pool.query(`SELECT ${COLUNAS} FROM pacientes ORDER BY id`);
+
+		res.status(200).json(resultado.rows);
+	} catch (erro) {
+		console.error('Falha ao listar pacientes:', erro.message);
+		res.status(500).json({ erro: 'Erro interno do servidor' });
 	}
-
-	// Busca parcial e sem diferenciar maiúsculas/minúsculas: "ana" encontra "Ana Costa"
-	const termo = nome.toLowerCase();
-	const filtrados = pacientes.filter((p) => p.nome.toLowerCase().includes(termo));
-
-	res.status(200).json(filtrados);
 });
 
 // Declarada antes de /pacientes/:id para que "total" não seja tratado como ID
-app.get('/pacientes/total', (req, res) => {
-	res.status(200).json({ total: pacientes.length });
+app.get('/pacientes/total', async (req, res) => {
+	try {
+		const resultado = await pool.query('SELECT COUNT(*) AS total FROM pacientes');
+		// COUNT retorna bigint no PostgreSQL, que o pg entrega como texto.
+		res.status(200).json({ total: Number(resultado.rows[0].total) });
+	} catch (erro) {
+		console.error('Falha ao contar pacientes:', erro.message);
+		res.status(500).json({ erro: 'Erro interno do servidor' });
+	}
 });
 
-app.get('/pacientes/:id', (req, res) => {
-	// O parâmetro chega como texto na URL, mas os IDs do array são números
+app.get('/pacientes/:id', async (req, res) => {
 	const id = Number(req.params.id);
-	const paciente = pacientes.find((p) => p.id === id);
 
-	if (!paciente) {
-		res.status(404).json({ erro: 'Paciente não encontrado' });
-		return;
+	if (!idValido(id)) {
+		return res.status(400).json({ erro: 'ID inválido' });
 	}
 
-	res.status(200).json(paciente);
+	try {
+		// O ID é enviado separado do SQL, como parâmetro da consulta.
+		const resultado = await pool.query(
+			`SELECT ${COLUNAS} FROM pacientes WHERE id = $1`,
+			[id]
+		);
+
+		if (resultado.rowCount === 0) {
+			return res.status(404).json({ erro: 'Paciente não encontrado' });
+		}
+
+		res.status(200).json(resultado.rows[0]);
+	} catch (erro) {
+		console.error('Falha ao buscar paciente:', erro.message);
+		res.status(500).json({ erro: 'Erro interno do servidor' });
+	}
 });
 
-app.post('/pacientes', (req, res) => {
+app.post('/pacientes', async (req, res) => {
 	// Sem corpo na requisição, o Express deixa req.body indefinido
 	const { nome, email, nascimento } = req.body || {};
 
@@ -82,27 +80,33 @@ app.post('/pacientes', (req, res) => {
 		return;
 	}
 
-	// E-mails são comparados sem diferenciar maiúsculas/minúsculas
-	const emailJaExiste = pacientes.some((p) => p.email.toLowerCase() === email.toLowerCase());
+	try {
+		// O banco gera o ID e devolve o paciente salvo com RETURNING.
+		const resultado = await pool.query(
+			`INSERT INTO pacientes (nome, email, nascimento)
+			 VALUES ($1, $2, $3)
+			 RETURNING ${COLUNAS}`,
+			[nome, email, nascimento]
+		);
 
-	if (emailJaExiste) {
-		res.status(409).json({ erro: 'Já existe um paciente cadastrado com este e-mail' });
-		return;
+		res.status(201).json(resultado.rows[0]);
+	} catch (erro) {
+		console.error('Falha ao cadastrar paciente:', erro.message);
+
+		// 23505 é o código do PostgreSQL para violação da restrição UNIQUE.
+		if (erro.code === '23505') {
+			return res.status(409).json({ erro: 'Já existe um paciente cadastrado com este e-mail' });
+		}
+
+		res.status(500).json({ erro: 'Erro interno do servidor' });
 	}
-
-	const paciente = { id: proximoId++, nome, email, nascimento };
-	pacientes.push(paciente);
-
-	res.status(201).json(paciente);
 });
 
-app.put('/pacientes/:id', (req, res) => {
+app.put('/pacientes/:id', async (req, res) => {
 	const id = Number(req.params.id);
-	const paciente = pacientes.find((p) => p.id === id);
 
-	if (!paciente) {
-		res.status(404).json({ erro: 'Paciente não encontrado' });
-		return;
+	if (!idValido(id)) {
+		return res.status(400).json({ erro: 'ID inválido' });
 	}
 
 	const { nome, email, nascimento } = req.body || {};
@@ -113,26 +117,53 @@ app.put('/pacientes/:id', (req, res) => {
 		return;
 	}
 
-	paciente.nome = nome;
-	paciente.email = email;
-	paciente.nascimento = nascimento;
+	try {
+		// Os valores e o ID são enviados como parâmetros, separados do SQL.
+		const resultado = await pool.query(
+			`UPDATE pacientes
+			 SET nome = $1, email = $2, nascimento = $3
+			 WHERE id = $4
+			 RETURNING ${COLUNAS}`,
+			[nome, email, nascimento, id]
+		);
 
-	res.status(200).json(paciente);
+		if (resultado.rowCount === 0) {
+			return res.status(404).json({ erro: 'Paciente não encontrado' });
+		}
+
+		res.status(200).json(resultado.rows[0]);
+	} catch (erro) {
+		console.error('Falha ao atualizar paciente:', erro.message);
+
+		if (erro.code === '23505') {
+			return res.status(409).json({ erro: 'Já existe um paciente cadastrado com este e-mail' });
+		}
+
+		res.status(500).json({ erro: 'Erro interno do servidor' });
+	}
 });
 
-app.delete('/pacientes/:id', (req, res) => {
+app.delete('/pacientes/:id', async (req, res) => {
 	const id = Number(req.params.id);
-	const indice = pacientes.findIndex((p) => p.id === id);
 
-	if (indice === -1) {
-		res.status(404).json({ erro: 'Paciente não encontrado' });
-		return;
+	if (!idValido(id)) {
+		return res.status(400).json({ erro: 'ID inválido' });
 	}
 
-	pacientes.splice(indice, 1);
+	try {
+		// Exclui somente o paciente cujo ID corresponde ao parâmetro $1.
+		const resultado = await pool.query('DELETE FROM pacientes WHERE id = $1', [id]);
 
-	// 204 indica sucesso sem corpo de resposta
-	res.status(204).end();
+		if (resultado.rowCount === 0) {
+			return res.status(404).json({ erro: 'Paciente não encontrado' });
+		}
+
+		// 204 indica sucesso sem corpo de resposta.
+		res.status(204).end();
+	} catch (erro) {
+		console.error('Falha ao excluir paciente:', erro.message);
+		res.status(500).json({ erro: 'Erro interno do servidor' });
+	}
 });
 
 // Qualquer outra rota/método não tratado cai aqui
