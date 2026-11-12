@@ -3,6 +3,7 @@ const ambienteLocal = location.protocol === 'file:' || ['localhost', '127.0.0.1'
 const URL_API = ambienteLocal
 	? 'http://localhost:3000/pacientes'
 	: 'https://api-clinica-walysonassis.onrender.com/pacientes';
+const TEMPO_LIMITE_API = 3 * 60 * 1000;
 
 const formulario = document.getElementById('form-paciente');
 const tabela = document.getElementById('tabela-pacientes');
@@ -155,6 +156,17 @@ function textoErro(erro) {
 	return erro instanceof TypeError ? 'Não foi possível conectar à clínica. Verifique sua conexão e tente novamente.' : erro.message;
 }
 
+async function mostrarErroCarregamento(erro) {
+	const tempoEsgotado = erro.name === 'TimeoutError';
+	const confirmado = await mostrarStatus({
+		tipo: 'erro',
+		titulo: tempoEsgotado ? 'O servidor demorou para responder' : 'Não foi possível carregar a lista',
+		texto: textoErro(erro),
+		confirmar: tempoEsgotado ? 'Recarregar página' : 'Entendi',
+	});
+	if (tempoEsgotado && confirmado) location.reload();
+}
+
 function criarCelula(texto) {
 	const celula = document.createElement('td');
 	celula.textContent = texto;
@@ -245,13 +257,19 @@ async function listarPacientes(acao = '') {
 	botaoLimparBusca.disabled = true;
 	definirCarregamento(true, atualizarIndicadores);
 	document.getElementById('filtro-legenda').textContent = nomeFiltrado ? `Nome: ${nomeFiltrado}` : 'Todos os pacientes';
+	const controle = new AbortController();
+	// O limite inclui a conexão e a leitura dos dados, mesmo quando o Render está acordando.
+	const limite = setTimeout(() => controle.abort(new DOMException(
+		'O servidor não respondeu em 3 minutos. Recarregue a página e tente novamente.',
+		'TimeoutError',
+	)), TEMPO_LIMITE_API);
 	try {
 		// O filtro é aplicado pela API; a lista completa mantém os indicadores globais.
 		const urlBusca = new URL(URL_API);
 		if (nomeFiltrado) urlBusca.searchParams.set('nome', nomeFiltrado);
 		const urls = nomeFiltrado && atualizarIndicadores ? [urlBusca.href, URL_API] : [urlBusca.href];
 		const listas = await Promise.all(urls.map(async (url) => {
-			const resposta = await fetch(url);
+			const resposta = await fetch(url, { signal: controle.signal });
 			if (!resposta.ok) throw await criarErroResposta(resposta);
 			return resposta.json();
 		}));
@@ -264,7 +282,10 @@ async function listarPacientes(acao = '') {
 		resultadoBusca.textContent = `${pacientes.length} de ${pacientesCarregados.length} pacientes`;
 		resultado = { ok: true, quantidade: pacientes.length };
 	} catch (erro) {
-		resultadoBusca.textContent = 'Falha no carregamento. Use Atualizar lista para tentar novamente.';
+		if (controle.signal.aborted) erro = controle.signal.reason;
+		resultadoBusca.textContent = erro.name === 'TimeoutError'
+			? erro.message
+			: 'Falha no carregamento. Use Atualizar lista para tentar novamente.';
 		if (atualizarIndicadores) {
 			['total', 'total-adultos', 'total-menores'].forEach((id) => {
 				document.getElementById(id).textContent = '—';
@@ -283,6 +304,7 @@ async function listarPacientes(acao = '') {
     `;
 	} finally {
 		// Executa tanto no sucesso quanto no erro
+		clearTimeout(limite);
 		definirCarregamento(false, atualizarIndicadores);
 		botaoRecarregar.disabled = false;
 		buscaPaciente.disabled = false;
@@ -290,7 +312,7 @@ async function listarPacientes(acao = '') {
 		botaoLimparBusca.disabled = false;
 	}
 	if (!resultado.ok && acao !== 'silencioso') {
-		mostrarStatus({ tipo: 'erro', titulo: 'Não foi possível carregar a lista', texto: textoErro(resultado.erro) });
+		mostrarErroCarregamento(resultado.erro);
 	}
 	return resultado;
 }
@@ -418,7 +440,7 @@ buscaPaciente.addEventListener('input', () => {
 botaoRecarregar.addEventListener('click', () => listarPacientes('atualizar'));
 
 // Assim que o script carrega, já dispara a busca dos dados iniciais.
-// Na primeira visita da sessão, a abertura cobre o minuto em que o servidor do Render acorda.
+// A abertura aguarda a resposta real da API, com limite de 3 minutos na requisição.
 iniciarAbertura(listarPacientes('silencioso')).then((resultado) => {
-	if (!resultado.ok) mostrarStatus({ tipo: 'erro', titulo: 'Não foi possível carregar a lista', texto: textoErro(resultado.erro) });
+	if (!resultado.ok) mostrarErroCarregamento(resultado.erro);
 });

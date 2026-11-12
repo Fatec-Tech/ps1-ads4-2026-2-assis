@@ -35,11 +35,16 @@ function iniciarAbertura(carregamento) {
 	const fundo = [...document.body.children].filter((elemento) => elemento !== abertura && elemento.tagName !== 'SCRIPT');
 	const inicio = performance.now();
 	let servidorPronto = false;
+	let resultadoCarregamento;
 	let etapasConcluidas = 0;
 
 	const pronto = carregamento
 		.catch((erro) => ({ ok: false, erro }))
-		.then((resultado) => { servidorPronto = true; return resultado; });
+		.then((resultado) => {
+			resultadoCarregamento = resultado;
+			servidorPronto = resultado.ok;
+			return resultado;
+		});
 	// Depois que a API responde, as etapas restantes passam rapidamente.
 	const aguardarEtapa = (ms) => Promise.race([esperar(ms), pronto.then(() => esperar(350))]);
 
@@ -106,11 +111,10 @@ function iniciarAbertura(carregamento) {
 		const porTempo = Math.min(decorrido / DURACAO_ABERTURA, 0.96);
 		const porEtapa = etapasConcluidas / ETAPAS_ABERTURA.length;
 		const fracao = abertura.dataset.fase === 'final' ? 1 : Math.max(porTempo, porEtapa);
-		const restante = Math.ceil((DURACAO_ABERTURA - decorrido) / 1000);
 		document.getElementById('abertura-barra').style.transform = `scaleX(${fracao})`;
 		document.getElementById('abertura-porcentagem').textContent = `${Math.round(fracao * 100)}%`;
 		document.getElementById('abertura-restante').textContent = servidorPronto ? 'Dados carregados'
-			: restante > 5 ? `Faltam cerca de ${restante} segundos` : 'Quase lá…';
+			: decorrido < DURACAO_ABERTURA ? 'Aguardando o servidor…' : 'O servidor ainda está iniciando…';
 	}
 
 	async function animarConexao() {
@@ -143,8 +147,10 @@ function iniciarAbertura(carregamento) {
 			status.textContent = `${etapa.texto}.`;
 			const ultima = indice === ETAPAS_ABERTURA.length - 1;
 			await aguardarEtapa(etapa.duracao);
-			// Se o minuto acabar e a API ainda não respondeu, a última etapa espera por ela
+			// A última etapa aguarda a resposta ou o limite de tempo da requisição.
 			if (ultima) await pronto;
+			// Interrompe as etapas para apresentar o erro, sem marcar dados como carregados.
+			if (resultadoCarregamento && !resultadoCarregamento.ok) break;
 			itens[indice].classList.replace('ativa', 'concluida');
 			pontos.children[indice].classList.replace('ativo', 'feito');
 			etapasConcluidas = indice + 1;
